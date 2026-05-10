@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>FoodSnap AI — Admin</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/static/home/img/favicon.ico" rel="icon">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --green-1: #00C896;
+            --green-2: #00A97A;
+            --green-3: #006B4F;
+            --orange-1: #FF7043;
+            --orange-2: #E64A19;
+            --red-1: #EF5350;
+            --blue-1: #42A5F5;
+            --purple-1: #AB47BC;
+            --teal-1: #26C6DA;
+            --bg: #F0F4F3;
+            --card: #FFFFFF;
+            --border: rgba(0,200,150,0.12);
+            --text-primary: #0D2318;
+            --text-secondary: #5A7068;
+            --text-muted: #9AB0A8;
+            --header-h: 68px;
+            --radius: 16px;
+            --shadow: 0 2px 20px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 24px rgba(0,0,0,0.10);
+            --shadow-hover: 0 8px 32px rgba(0,200,150,0.18);
+            --tr: all 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+        .dark-mode {
+            --bg: #0D1F1A;
+            --card: #132A22;
+            --border: rgba(0,200,150,0.15);
+            --text-primary: #E8F5F0;
+            --text-secondary: #7ABAA8;
+            --text-muted: #4A6A5A;
+            --shadow: 0 2px 16px rgba(0,0,0,0.4);
+            --shadow-md: 0 4px 24px rgba(0,0,0,0.5);
+            --shadow-hover: 0 8px 32px rgba(0,200,150,0.25);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text-primary); transition:var(--tr); overflow-x:hidden; }
+
+        /* All anchor targets clear the sticky header */
+        [id] { scroll-margin-top: calc(var(--header-h) + 20px); }
+
+        /* ══════════════════════════════════
+           HEADER
+        ══════════════════════════════════ */
+        .top-header {
+            position: sticky; top: 0;
+            height: var(--header-h);
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center;
+            padding: 0 28px; gap: 14px;
+            z-index: 900;
+            transition: var(--tr);
+            box-shadow: 0 1px 0 var(--border), 0 4px 24px rgba(0,0,0,0.04);
+        }
+        .dark-mode .top-header { background: rgba(19,42,34,0.92); }
+
+        /* Brand */
+        .header-brand {
+            display: flex; align-items: center; gap: 10px;
+            text-decoration: none; flex-shrink: 0;
+            transition: var(--tr);
+        }
+        .header-brand:hover .logo-icon { box-shadow: 0 6px 20px rgba(0,200,150,0.5); transform: scale(1.07); }
+
+        .logo-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--green-1), var(--green-3));
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; color: #fff; flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,200,150,0.3);
+            transition: var(--tr);
+        }
+        .logo-text {
+            font-family: 'Syne', sans-serif; font-weight: 800; font-size: 17px;
+            color: var(--text-primary); line-height: 1.1;
+        }
+        .logo-text span { color: var(--green-1); }
+        .logo-sub { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-muted); margin-top: 1px; }
+
+        .header-divider { width:1px; height:28px; background:var(--border); margin:0 4px; flex-shrink:0; }
+
+        /* ── NAV LINKS ── */
+        .header-nav { display:flex; align-items:center; gap:2px; flex:1; }
+
+        .hnav-link {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 13px; border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 13.5px; font-weight: 500;
+            transition: var(--tr); white-space: nowrap;
+            position: relative;
+        }
+        .hnav-link i { font-size: 13px; transition: var(--tr); }
+        .hnav-link:hover { background: rgba(0,200,150,0.08); color: var(--green-1); }
+
+        /* Active state — glowing pill */
+        .hnav-link.active {
+            background: linear-gradient(135deg, rgba(0,200,150,0.14), rgba(0,200,150,0.06));
+            color: var(--green-1);
+            font-weight: 700;
+            box-shadow: 0 0 0 1.5px rgba(0,200,150,0.25), 0 2px 12px rgba(0,200,150,0.12);
+        }
+        .hnav-link.active i {
+            filter: drop-shadow(0 0 5px rgba(0,200,150,0.6));
+        }
+        /* Animated underline dot for active */
+        .hnav-link.active::after {
+            content: '';
+            position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+            width: 4px; height: 4px; border-radius: 50%;
+            background: var(--green-1);
+            box-shadow: 0 0 6px rgba(0,200,150,0.8);
+        }
+
+        /* ── RIGHT ACTIONS ── */
+        .header-actions { display:flex; align-items:center; gap:8px; margin-left:auto; flex-shrink:0; }
+
+        .hbtn {
+            width:40px; height:40px;
+            background: var(--bg); border: 1.5px solid var(--border);
+            border-radius: 11px;
+            display:flex; align-items:center; justify-content:center;
+            cursor:pointer; color:var(--text-secondary); font-size:15px;
+            transition:var(--tr); position:relative; text-decoration:none;
+        }
+        .hbtn:hover { background:rgba(0,200,150,0.08); color:var(--green-1); border-color:var(--green-1); }
+
+        .notif-dot {
+            position:absolute; top:7px; right:7px;
+            width:7px; height:7px; background:var(--orange-1);
+            border-radius:50%; border:2px solid var(--card);
+        }
+
+        .dark-btn {
+            background: var(--bg); border: 1.5px solid var(--border); border-radius: 11px;
+            padding: 7px 14px; cursor: pointer; color: var(--text-secondary);
+            font-size: 13px; font-weight: 500;
+            display:flex; align-items:center; gap:6px; transition:var(--tr);
+        }
+        .dark-btn:hover { color:var(--green-1); border-color:var(--green-1); background:rgba(0,200,150,0.06); }
+
+        /* ── ADMIN DROPDOWN  (redesigned) ── */
+        .admin-dropdown-wrap {
+            position: relative;
+        }
+        .admin-chip {
+            display: flex; align-items: center; gap: 9px;
+            background: var(--bg); border: 1.5px solid var(--border);
+            border-radius: 12px; padding: 5px 12px 5px 6px;
+            cursor: pointer; transition: var(--tr);
+            user-select: none;
+        }
+        .admin-chip:hover, .admin-chip.open { border-color: var(--green-1); background: rgba(0,200,150,0.06); }
+
+        .admin-avatar {
+            width: 30px; height: 30px;
+            background: linear-gradient(135deg, var(--green-1), var(--green-3));
+            border-radius: 8px;
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-size:11px; font-weight:700;
+            font-family:'Syne',sans-serif;
+            box-shadow: 0 3px 8px rgba(0,200,150,0.3);
+        }
+        .admin-info { display:flex; flex-direction:column; line-height:1.2; }
+        .admin-name { font-size:13px; font-weight:700; color:var(--text-primary); }
+        .admin-role { font-size:10.5px; color:var(--text-muted); font-weight:500; }
+        .admin-chevron { font-size:10px; color:var(--text-muted); transition:transform 0.25s ease; margin-left:2px; }
+        .admin-chip.open .admin-chevron { transform: rotate(180deg); }
+
+        /* Dropdown panel — improved */
+        .admin-dropdown-panel {
+            display: none;
+            position: absolute; right: 0; top: calc(100% + 10px);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow-md), 0 0 0 1px rgba(0,200,150,0.08);
+            min-width: 220px;
+            overflow: hidden;
+            z-index: 9999;
+            animation: dropIn 0.2s cubic-bezier(0.4,0,0.2,1) both;
+        }
+        .admin-dropdown-panel.open { display: block; }
+
+        @keyframes dropIn { from{opacity:0;transform:translateY(-8px) scale(0.97);} to{opacity:1;transform:translateY(0) scale(1);} }
+
+        /* User info section at top of dropdown */
+        .dd-user-block {
+            padding: 16px 16px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+            background: linear-gradient(135deg, rgba(0,200,150,0.04), transparent);
+        }
+        .dd-avatar-lg {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--green-1), var(--green-3));
+            border-radius: 12px;
+            display:flex; align-items:center; justify-content:center;
+            color:#fff; font-size:15px; font-weight:800;
+            font-family:'Syne',sans-serif;
+            box-shadow: 0 4px 12px rgba(0,200,150,0.3);
+            flex-shrink: 0;
+        }
+        .dd-user-name { font-size:14px; font-weight:700; color:var(--text-primary); }
+        .dd-user-email { font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+
+        /* Dropdown items */
+        .dd-section { padding: 8px; }
+        .dd-item {
+            display: flex; align-items: center; gap: 11px;
+            padding: 10px 12px; border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none; font-size: 13.5px; font-weight: 500;
+            transition: var(--tr); cursor: pointer;
+        }
+        .dd-item-icon {
+            width: 32px; height: 32px; border-radius: 9px;
+            display:flex; align-items:center; justify-content:center;
+            font-size: 13px; flex-shrink: 0;
+            transition: var(--tr);
+        }
+        .dd-item:hover { background: rgba(0,200,150,0.07); color: var(--green-1); }
+        .dd-item:hover .dd-item-icon { background: rgba(0,200,150,0.12); }
+
+        .dd-item.icon-blue .dd-item-icon { background: rgba(66,165,245,0.1); color: var(--blue-1); }
+        .dd-item.icon-blue:hover { color: var(--blue-1); }
+        .dd-item.icon-blue:hover .dd-item-icon { background: rgba(66,165,245,0.18); }
+
+        .dd-item.icon-red .dd-item-icon { background: rgba(239,83,80,0.1); color: var(--red-1); }
+        .dd-item.icon-red { color: var(--red-1); }
+        .dd-item.icon-red:hover { background: rgba(239,83,80,0.07); color: var(--red-1); }
+        .dd-item.icon-red:hover .dd-item-icon { background: rgba(239,83,80,0.18); }
+
+        .dd-divider { height:1px; background:var(--border); margin: 0 8px; }
+
+        /* ── MOBILE MENU ── */
+        .mob-menu-btn {
+            display:none; background:none; border:none;
+            color:var(--text-secondary); font-size:18px; cursor:pointer;
+            padding:8px; border-radius:10px; transition:var(--tr);
+        }
+        .mob-menu-btn:hover { background:rgba(0,200,150,0.08); color:var(--green-1); }
+
+        .mob-nav {
+            display: none;
+            position: fixed;
+            top: var(--header-h); left:0; right:0;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 14px 14px;
+            z-index: 899;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+            flex-direction: column; gap: 3px;
+        }
+        .mob-nav.open { display:flex; }
+        .mob-nav .hnav-link { font-size:14px; padding:11px 14px; }
+
+        /* ══════════════════════════════════
+           CONTENT
+        ══════════════════════════════════ */
+        .content { padding: 32px 28px; max-width: 1400px; margin: 0 auto; }
+
+        .page-header { margin-bottom: 32px; }
+        .breadcrumb-row { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); margin-bottom:10px; }
+        .breadcrumb-row a { color:var(--green-1); text-decoration:none; }
+        .breadcrumb-row a:hover { text-decoration:underline; }
+        .page-title { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; color:var(--text-primary); line-height:1.1; }
+        .page-title span { color:var(--green-1); }
+        .page-sub { color:var(--text-muted); font-size:14px; margin-top:6px; }
+
+        /* Quick Actions */
+        .qa-card {
+            background:var(--card); border-radius:var(--radius); padding:26px;
+            box-shadow:var(--shadow); border:1px solid var(--border);
+            margin-bottom:24px; position:relative; overflow:hidden;
+        }
+        .qa-card::before {
+            content:''; position:absolute; top:-50px; right:-50px;
+            width:200px; height:200px; border-radius:50%;
+            background:radial-gradient(circle,rgba(0,200,150,0.07) 0%,transparent 70%);
+            pointer-events:none;
+        }
+        .section-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--text-primary); }
+        .section-sub { font-size:12px; color:var(--text-muted); margin-top:3px; margin-bottom:20px; }
+
+        .qa-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(148px,1fr)); gap:14px; }
+        .qa-btn {
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:11px; padding:22px 12px;
+            border-radius:14px; border:1.5px solid var(--border);
+            background:var(--bg); color:var(--text-secondary);
+            text-decoration:none; font-size:13px; font-weight:600; font-family:'Syne',sans-serif;
+            transition:var(--tr); text-align:center;
+        }
+        .qa-btn i { font-size:22px; width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; transition:var(--tr); }
+        .qa-btn:hover { transform:translateY(-4px); box-shadow:var(--shadow-hover); color:var(--green-1); border-color:var(--green-1); background:var(--card); }
+        .qa-btn:hover i { transform:scale(1.1); }
+        .qa-green i  { background:rgba(0,200,150,0.12); color:var(--green-1); }
+        .qa-orange i { background:rgba(255,112,67,0.12); color:var(--orange-1); }
+        .qa-teal i   { background:rgba(38,198,218,0.12); color:var(--teal-1); }
+        .qa-purple i { background:rgba(171,71,188,0.12); color:var(--purple-1); }
+
+        /* Stat Cards */
+        .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:18px; margin-bottom:28px; }
+        .stat-card {
+            background:var(--card); border-radius:var(--radius); padding:24px;
+            box-shadow:var(--shadow); border:1px solid var(--border);
+            transition:var(--tr); position:relative; overflow:hidden;
+        }
+        .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; border-radius:var(--radius) var(--radius) 0 0; }
+        .stat-card::after { content:''; position:absolute; bottom:-24px; right:-24px; width:100px; height:100px; border-radius:50%; opacity:0.05; transition:var(--tr); }
+        .stat-card:hover { transform:translateY(-5px); box-shadow:var(--shadow-hover); }
+        .stat-card:hover::after { transform:scale(1.4); opacity:0.09; }
+        .stat-card.c-green::before  { background:linear-gradient(90deg,var(--green-1),var(--green-3)); }
+        .stat-card.c-green::after   { background:var(--green-1); }
+        .stat-card.c-blue::before   { background:linear-gradient(90deg,var(--blue-1),#1565C0); }
+        .stat-card.c-blue::after    { background:var(--blue-1); }
+        .stat-card.c-teal::before   { background:linear-gradient(90deg,var(--teal-1),#00838F); }
+        .stat-card.c-teal::after    { background:var(--teal-1); }
+        .stat-card.c-purple::before { background:linear-gradient(90deg,var(--purple-1),#6A1B9A); }
+        .stat-card.c-purple::after  { background:var(--purple-1); }
+        .stat-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:18px; }
+        .c-green  .stat-icon { background:rgba(0,200,150,0.12); color:var(--green-1); }
+        .c-blue   .stat-icon { background:rgba(66,165,245,0.12); color:var(--blue-1); }
+        .c-teal   .stat-icon { background:rgba(38,198,218,0.12); color:var(--teal-1); }
+        .c-purple .stat-icon { background:rgba(171,71,188,0.12); color:var(--purple-1); }
+        .stat-number { font-family:'Syne',sans-serif; font-size:34px; font-weight:800; color:var(--text-primary); line-height:1; margin-bottom:7px; }
+        .stat-label  { font-size:12.5px; color:var(--text-muted); font-weight:500; }
+
+        /* Tables */
+        .tables-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:28px; }
+        .tbl-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); border:1px solid var(--border); overflow:hidden; }
+        .tbl-head { padding:20px 22px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+        .tbl-scroll { overflow-x:auto; max-height:320px; overflow-y:auto; }
+        .dtable { width:100%; border-collapse:collapse; font-size:13px; }
+        .dtable thead th { background:var(--bg); color:var(--text-muted); font-weight:600; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:10px 18px; border-bottom:1px solid var(--border); white-space:nowrap; }
+        .dtable tbody tr { border-bottom:1px solid var(--border); transition:var(--tr); }
+        .dtable tbody tr:last-child { border-bottom:none; }
+        .dtable tbody tr:hover { background:rgba(0,200,150,0.04); }
+        .dtable tbody td { padding:12px 18px; color:var(--text-primary); vertical-align:middle; }
+        .ucell { display:flex; align-items:center; gap:10px; }
+        .uavatar { width:32px; height:32px; border-radius:9px; background:linear-gradient(135deg,var(--green-1),var(--green-3)); display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:700; flex-shrink:0; font-family:'Syne',sans-serif; text-transform:uppercase; }
+        .uname  { font-weight:600; font-size:13px; }
+        .uemail { font-size:11.5px; color:var(--text-muted); }
+        .badge { padding:4px 11px; border-radius:20px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+        .b-green  { background:rgba(0,200,150,0.12); color:var(--green-2); }
+        .b-orange { background:rgba(255,112,67,0.12); color:var(--orange-1); }
+        .b-red    { background:rgba(239,83,80,0.12);  color:var(--red-1); }
+        .b-blue   { background:rgba(66,165,245,0.12); color:var(--blue-1); }
+        .b-gray   { background:rgba(154,176,168,0.12); color:var(--text-muted); }
+        .view-all { font-size:12.5px; color:var(--green-1); text-decoration:none; font-weight:600; display:flex; align-items:center; gap:5px; padding:6px 13px; border-radius:9px; background:rgba(0,200,150,0.07); border:1px solid rgba(0,200,150,0.15); transition:var(--tr); }
+        .view-all:hover { background:rgba(0,200,150,0.14); gap:8px; }
+        .empty-row td { text-align:center; padding:38px!important; color:var(--text-muted); font-size:13px; }
+        .empty-icon { width:54px; height:54px; border-radius:14px; background:var(--bg); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:22px; opacity:0.45; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar{width:5px;height:5px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+        ::-webkit-scrollbar-thumb:hover{background:var(--green-1);}
+
+        /* Animations */
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .ani{animation:fadeUp 0.45s ease both;}
+        .ani:nth-child(1){animation-delay:.05s}.ani:nth-child(2){animation-delay:.10s}
+        .ani:nth-child(3){animation-delay:.15s}.ani:nth-child(4){animation-delay:.20s}
+        .fade-in{animation:fadeIn 0.4s ease both;}
+
+        /* Responsive */
+        @media(max-width:960px){.header-nav{display:none;}.mob-menu-btn{display:block;}}
+        @media(max-width:768px){.tables-grid{grid-template-columns:1fr;}.content{padding:20px 16px;}.stats-grid{grid-template-columns:repeat(2,1fr);}}
+        @media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;}.qa-grid{grid-template-columns:repeat(2,1fr);}.top-header{padding:0 16px;}.logo-sub{display:none;}.admin-info{display:none;}}
+    </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     TOP HEADER
+══════════════════════════════════════════════ -->
+<header class="top-header">
+
+    <!-- Brand — navigates to home -->
+    <a href="/myapp/admin_home/#abc" class="header-brand">
+        <div class="logo-icon"><i class="fas fa-seedling"></i></div>
+        <div>
+            <div class="logo-text">Food<span>Snap</span> AI</div>
+            <div class="logo-sub">Admin Panel</div>
+        </div>
+    </a>
+
+    <div class="header-divider"></div>
+
+    <!-- Nav links — active class set by JS based on current URL -->
+    <nav class="header-nav" id="headerNav">
+        <a href="/myapp/admin_home/" class="hnav-link" data-page="admin_home">
+            <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        <a href="/myapp/admin_view_user/#a" class="hnav-link" data-page="admin_view_user">
+            <i class="fas fa-users"></i> Users
+        </a>
+        <a href="/myapp/admin_add_food/#a" class="hnav-link" data-page="admin_add_food">
+            <i class="fas fa-plus-circle"></i> Add Food
+        </a>
+        <a href="/myapp/admin_view_food_database/#a" class="hnav-link" data-page="admin_view_food_database">
+            <i class="fas fa-database"></i> Food Database
+        </a>
+        <a href="/myapp/admin_view_feedback/#a" class="hnav-link" data-page="admin_view_feedback">
+            <i class="fas fa-comment-dots"></i> Feedback
+        </a>
+    </nav>
+
+    <!-- Right-side actions -->
+    <div class="header-actions">
+
+        <!-- <span class="hbtn" title="Notifications">
+            <i class="fas fa-bell"></i>
+            {% if pending_complaints > 0 %}<span class="notif-dot"></span>{% endif %}
+        </span> -->
+
+        <button class="dark-btn" onclick="toggleDark()">
+            <i class="fas fa-moon" id="darkIcon"></i>
+            <span id="darkLabel">Dark</span>
+        </button>
+
+        <!-- ── Admin dropdown (JS-controlled, not CSS :hover) ── -->
+        <div class="admin-dropdown-wrap" id="adminDropdownWrap">
+            <div class="admin-chip" id="adminChip" onclick="toggleDropdown()">
+                <div class="admin-avatar">{{ request.user.username|slice:":2"|upper }}</div>
+                <div class="admin-info">
+                    <span class="admin-name">{{ request.user.username }}</span>
+                    <span class="admin-role">Administrator</span>
+                </div>
+                <i class="fas fa-chevron-down admin-chevron" id="adminChevron"></i>
+            </div>
+
+            <div class="admin-dropdown-panel" id="adminDropdown">
+                <!-- User info block -->
+                <!-- <div class="dd-user-block">
+                    <div class="dd-avatar-lg">{{ request.user.username|slice:":2"|upper }}</div>
+                    <div>
+                        <div class="dd-user-name">{{ request.user.username }}</div>
+                        <div class="dd-user-email">{{ request.user.email }}</div>
+                    </div>
+                </div> -->
+
+                <!-- Actions -->
+                <div class="dd-section">
+                    <a href="/myapp/admin_change_password/#a" class="dd-item icon-blue">
+                        <div class="dd-item-icon"><i class="fas fa-key"></i></div>
+                        Change Password
+                    </a>
+                </div>
+
+                <div class="dd-divider"></div>
+
+                <div class="dd-section">
+                    <a href="/myapp/login_get/" class="dd-item icon-red">
+                        <div class="dd-item-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile hamburger -->
+        <button class="mob-menu-btn" id="mobMenuBtn" onclick="toggleMobMenu()">
+            <i class="fas fa-bars" id="mobMenuIcon"></i>
+        </button>
+
+    </div>
+</header>
+
+<!-- Mobile nav drawer -->
+<nav class="mob-nav" id="mobNav">
+    <a href="/myapp/admin_home/" class="hnav-link" data-page="admin_home" onclick="closeMobMenu()">
+        <i class="fas fa-th-large"></i> Dashboard
+    </a>
+    <a href="/myapp/admin_view_user/#a" class="hnav-link" data-page="admin_view_user" onclick="closeMobMenu()">
+        <i class="fas fa-users"></i> Users
+    </a>
+    <a href="/myapp/admin_add_food/#a" class="hnav-link" data-page="admin_add_food" onclick="closeMobMenu()">
+        <i class="fas fa-plus-circle"></i> Add Food
+    </a>
+    <a href="/myapp/admin_view_food_database/#a" class="hnav-link" data-page="admin_view_food_database" onclick="closeMobMenu()">
+        <i class="fas fa-database"></i> Food Database
+    </a>
+    <a href="/myapp/admin_view_feedback/#a" class="hnav-link" data-page="admin_view_feedback" onclick="closeMobMenu()">
+        <i class="fas fa-comment-dots"></i> Feedback
+    </a>
+    <a href="/myapp/admin_change_password/#a" class="hnav-link" onclick="closeMobMenu()">
+        <i class="fas fa-cog"></i> Change Password
+    </a>
+    <a href="/myapp/login_get/" class="hnav-link danger" style="color:var(--red-1);" onclick="closeMobMenu()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     MAIN CONTENT  (each page fills this)
+══════════════════════════════════════════════ -->
+<main class="content" id="abc">
+
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+        <div class="breadcrumb-row">
+            <i class="fas fa-home" style="font-size:11px;"></i>
+            <a href="/myapp/admin_home/#abc">Home</a>
+            <i class="fas fa-chevron-right" style="font-size:9px;"></i>
+            <span>Dashboard</span>
+        </div>
+        <h1 class="page-title">Admin <span>Dashboard</span></h1>
+        <p class="page-sub">Welcome back, {{ request.user.username }}. Here's your system overview.</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="qa-card">
+        <div class="section-title">Quick Actions</div>
+        <div class="section-sub">Common admin tasks at a glance</div>
+        <div class="qa-grid">
+            <a href="/myapp/admin_view_user/#a" class="qa-btn qa-orange">
+                <i class="fas fa-users-cog"></i>Manage Users
+            </a>
+            <a href="/myapp/admin_add_food/#a" class="qa-btn qa-green">
+                <i class="fas fa-utensils"></i>Add Food
+            </a>
+            <a href="/myapp/admin_view_food_database/#a" class="qa-btn qa-teal">
+                <i class="fas fa-database"></i>Food Database
+            </a>
+            <a href="/myapp/admin_view_feedback/#a" class="qa-btn qa-purple">
+                <i class="fas fa-comment-dots"></i>Feedback
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+        <div class="stat-card c-green ani">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-number">{{ total_users|default:"0" }}</div>
+            <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-card c-blue ani">
+            <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
+            <div class="stat-number">{{ active_today|default:"0" }}</div>
+            <div class="stat-label">Joined Today</div>
+        </div>
+        <div class="stat-card c-teal ani">
+            <div class="stat-icon"><i class="fas fa-apple-alt"></i></div>
+            <div class="stat-number">{{ total_food|default:"0" }}</div>
+            <div class="stat-label">Total Food Items</div>
+        </div>
+        <div class="stat-card c-purple ani">
+            <div class="stat-icon"><i class="fas fa-comment-dots"></i></div>
+            <div class="stat-number">{{ total_feedback|default:"0" }}</div>
+            <div class="stat-label">Total Feedback</div>
+        </div>
+    </div>
+
+    <!-- Recent Users + Recent Food -->
+    <div class="tables-grid">
+        <div class="tbl-card">
+            <div class="tbl-head">
+                <div>
+                    <div class="section-title">Recent Users</div>
+                    <div class="section-sub" style="margin-bottom:0">Latest registrations</div>
+                </div>
+                <a href="/myapp/admin_view_user/#a" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="tbl-scroll">
+                <table class="dtable">
+                    <thead>
+                        <tr><th>User</th><th>Joined</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>
+                                <div class="ucell">
+                                    <div class="uavatar">{{ user.username|slice:":2" }}</div>
+                                    <div>
+                                        <div class="uname">{{ user.username }}</div>
+                                        <div class="uemail">{{ user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color:var(--text-muted);font-size:12px;">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge b-green"><i class="fas fa-circle" style="font-size:6px;"></i> Active</span>
+                                {% else %}
+                                    <span class="badge b-gray">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="3">
+                                <div class="empty-icon"><i class="fas fa-users"></i></div>
+                                No users registered yet
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tbl-card">
+            <div class="tbl-head">
+                <div>
+                    <div class="section-title">Recent Food Items</div>
+                    <div class="section-sub" style="margin-bottom:0">Latest additions to database</div>
+                </div>
+                <a href="/myapp/admin_view_food_database/#a" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="tbl-scroll">
+                <table class="dtable">
+                    <thead>
+                        <tr><th>Food Name</th><th>Description</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for food in recent_food %}
+                        <tr>
+                            <td>
+                                <div class="ucell">
+                                    {% if food.Photo %}
+                                        <img src="{{ food.Photo }}" alt="{{ food.Food_Name }}"
+                                             style="width:32px;height:32px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
+                                    {% else %}
+                                        <div class="uavatar" style="background:linear-gradient(135deg,var(--teal-1),#00838F)">
+                                            <i class="fas fa-utensils" style="font-size:12px;"></i>
+                                        </div>
+                                    {% endif %}
+                                    <span style="font-weight:600;font-size:13px;">{{ food.Food_Name }}</span>
+                                </div>
+                            </td>
+                            <td style="color:var(--text-muted);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                {{ food.description|truncatechars:50 }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="2">
+                                <div class="empty-icon"><i class="fas fa-apple-alt"></i></div>
+                                No food items added yet
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Django blocks -->
+    <div id="a"></div>
+    {% block body %}{% endblock %}
+
+</main>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════
+// ACTIVE NAV  — highlight based on URL
+// ═══════════════════════════════════════
+(function() {
+    const path = window.location.pathname; // e.g. /myapp/admin_view_user/
+
+    // Map of URL segments → data-page values
+    const pageMap = {
+        'admin_home':              'admin_home',
+        'admin_view_user':         'admin_view_user',
+        'admin_add_food':          'admin_add_food',
+        'admin_view_food_database':'admin_view_food_database',
+        'admin_view_feedback':     'admin_view_feedback',
+    };
+
+    let matched = null;
+    for (const [segment, page] of Object.entries(pageMap)) {
+        if (path.includes(segment)) { matched = page; break; }
+    }
+
+    if (matched) {
+        // Desktop nav
+        document.querySelectorAll('.header-nav .hnav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.dataset.page === matched) link.classList.add('active');
+        });
+        // Mobile nav
+        document.querySelectorAll('.mob-nav .hnav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.dataset.page === matched) link.classList.add('active');
+        });
+    }
+})();
+
+// ═══════════════════════════════════════
+// ADMIN DROPDOWN  — JS-toggled (not :hover)
+// ═══════════════════════════════════════
+const adminChip     = document.getElementById('adminChip');
+const adminDropdown = document.getElementById('adminDropdown');
+const adminChevron  = document.getElementById('adminChevron');
+
+function toggleDropdown() {
+    const isOpen = adminDropdown.classList.contains('open');
+    closeDropdown();
+    if (!isOpen) {
+        adminDropdown.classList.add('open');
+        adminChip.classList.add('open');
+    }
+}
+function closeDropdown() {
+    adminDropdown.classList.remove('open');
+    adminChip.classList.remove('open');
+}
+
+// Close when clicking outside
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('adminDropdownWrap');
+    if (!wrap.contains(e.target)) closeDropdown();
+});
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDropdown();
+});
+
+// ═══════════════════════════════════════
+// DARK MODE
+// ═══════════════════════════════════════
+function toggleDark() {
+    document.body.classList.toggle('dark-mode');
+    const on = document.body.classList.contains('dark-mode');
+    document.getElementById('darkIcon').className = on ? 'fas fa-sun' : 'fas fa-moon';
+    document.getElementById('darkLabel').textContent = on ? 'Light' : 'Dark';
+    localStorage.setItem('dm', on ? '1' : '0');
+}
+if (localStorage.getItem('dm') === '1') {
+    document.body.classList.add('dark-mode');
+    document.getElementById('darkIcon').className = 'fas fa-sun';
+    document.getElementById('darkLabel').textContent = 'Light';
+}
+
+// ═══════════════════════════════════════
+// MOBILE MENU
+// ═══════════════════════════════════════
+function toggleMobMenu() {
+    const nav  = document.getElementById('mobNav');
+    const icon = document.getElementById('mobMenuIcon');
+    const open = nav.classList.toggle('open');
+    icon.className = open ? 'fas fa-times' : 'fas fa-bars';
+}
+function closeMobMenu() {
+    document.getElementById('mobNav').classList.remove('open');
+    document.getElementById('mobMenuIcon').className = 'fas fa-bars';
+}
+document.addEventListener('click', function(e) {
+    const nav = document.getElementById('mobNav');
+    const btn = document.getElementById('mobMenuBtn');
+    if (nav && nav.classList.contains('open') && !nav.contains(e.target) && !btn.contains(e.target)) {
+        closeMobMenu();
+    }
+});
+
+// ═══════════════════════════════════════
+// ANCHOR SCROLL FIX
+// ═══════════════════════════════════════
+function scrollToAnchor(hash) {
+    const target = document.querySelector(hash);
+    if (!target) return;
+    const top = target.getBoundingClientRect().top + window.pageYOffset - (68 + 20);
+    window.scrollTo({ top, behavior: 'smooth' });
+}
+document.querySelectorAll('a[href*="#"]').forEach(link => {
+    link.addEventListener('click', function() {
+        try {
+            const url = new URL(this.href, window.location.href);
+            if (url.pathname === window.location.pathname && url.hash) {
+                setTimeout(() => scrollToAnchor(url.hash), 60);
+            }
+        } catch(_) {}
+    });
+});
+if (window.location.hash) {
+    setTimeout(() => scrollToAnchor(window.location.hash), 120);
+}
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

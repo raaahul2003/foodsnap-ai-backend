@@ -1,0 +1,844 @@
+{% extends 'index.html' %}
+{% block body %}
+
+<style>
+  .fb-wrap { padding-bottom: 48px; }
+
+  .fb-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-muted); margin-bottom: 6px;
+  }
+  .fb-breadcrumb a { color: var(--green-1); text-decoration: none; }
+
+  .fb-page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;
+  }
+  .fb-page-title span { color: var(--green-1); }
+  .fb-page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Stat bar ── */
+  .fb-statbar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .fb-stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px;
+    transition: var(--tr); animation: fadeUp 0.4s ease both;
+  }
+  .fb-stat:nth-child(2){animation-delay:.07s}
+  .fb-stat:nth-child(3){animation-delay:.14s}
+  .fb-stat:nth-child(4){animation-delay:.21s}
+  .fb-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .fb-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .fb-stat-icon.green  { background: rgba(0,200,150,0.12);  color: var(--green-1); }
+  .fb-stat-icon.blue   { background: rgba(66,165,245,0.12); color: #42A5F5; }
+  .fb-stat-icon.purple { background: rgba(171,71,188,0.12); color: #AB47BC; }
+  .fb-stat-icon.orange { background: rgba(255,112,67,0.12); color: var(--orange-1); }
+  .fb-stat-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+  .fb-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* ── Main card ── */
+  .fb-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    overflow: hidden; animation: fadeUp 0.45s ease 0.1s both;
+  }
+
+  .fb-card-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(0,200,150,0.04), transparent);
+  }
+
+  .fb-card-header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+
+  .fb-card-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .fb-card-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Toolbar */
+  .fb-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* Search */
+  .fb-search { position: relative; }
+  .fb-search input {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 9px 16px 9px 38px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; width: 220px; transition: var(--tr);
+  }
+  .fb-search input::placeholder { color: var(--text-muted); }
+  .fb-search input:focus { border-color: var(--green-1); box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+  .fb-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+
+  /* View toggle */
+  .fb-view-toggle { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+  .fb-view-btn {
+    width: 32px; height: 32px; border-radius: 7px; border: none;
+    background: transparent; color: var(--text-muted); font-size: 14px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--tr);
+  }
+  .fb-view-btn.active { background: var(--green-1); color: #fff; }
+
+  /* Date filter row */
+  .fb-filter-row {
+    display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+  }
+
+  .fb-date-group { display: flex; flex-direction: column; gap: 5px; }
+  .fb-date-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--text-muted); display: flex; align-items: center; gap: 5px;
+  }
+  .fb-date-input {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 9px 14px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; transition: var(--tr); cursor: pointer;
+  }
+  .fb-date-input:focus { border-color: var(--green-1); box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+
+  .fb-filter-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    color: #fff; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+    cursor: pointer; transition: var(--tr); box-shadow: 0 4px 14px rgba(0,200,150,0.3);
+    white-space: nowrap;
+  }
+  .fb-filter-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,200,150,0.4); }
+
+  .fb-clear-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    color: var(--text-secondary); font-size: 13px; font-weight: 600;
+    font-family: 'Syne', sans-serif; cursor: pointer; transition: var(--tr);
+    white-space: nowrap;
+  }
+  .fb-clear-btn:hover { border-color: var(--red-1); color: var(--red-1); background: rgba(239,83,80,0.05); }
+
+  /* Active filter badge */
+  .fb-active-filter {
+    display: none; align-items: center; gap: 8px;
+    margin-top: 10px;
+    padding: 8px 14px; border-radius: 20px;
+    background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.2);
+    font-size: 12px; font-weight: 600; color: var(--green-2);
+  }
+  .fb-active-filter.show { display: inline-flex; }
+  .fb-active-filter button {
+    background: none; border: none; color: var(--green-2); cursor: pointer;
+    font-size: 13px; line-height: 1; padding: 0 0 0 4px;
+  }
+
+  /* ── TABLE VIEW ── */
+  .fb-table-wrap { overflow-x: auto; }
+  .fb-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .fb-table thead th {
+    background: var(--bg); color: var(--text-muted);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 12px 18px; border-bottom: 1px solid var(--border); white-space: nowrap;
+    cursor: pointer; user-select: none; transition: var(--tr);
+  }
+  .fb-table thead th:hover { color: var(--green-1); }
+  .sort-icon { margin-left: 5px; opacity: 0.4; font-size: 10px; }
+  .sorted .sort-icon { opacity: 1; color: var(--green-1); }
+
+  .fb-table tbody tr { border-bottom: 1px solid var(--border); transition: var(--tr); }
+  .fb-table tbody tr:last-child { border-bottom: none; }
+  .fb-table tbody tr:hover { background: rgba(0,200,150,0.04); }
+  .fb-table tbody td { padding: 15px 18px; vertical-align: middle; }
+
+  .fb-idx { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-muted); width: 48px; }
+
+  /* Date cell */
+  .fb-date-cell { white-space: nowrap; }
+  .fb-date-main { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .fb-date-rel  { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* User cell */
+  .fb-user-cell { display: flex; align-items: center; gap: 10px; }
+  .fb-avatar {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: #fff;
+  }
+  .fb-user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+  /* Feedback cell */
+  .fb-text-cell {
+    font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+    max-width: 420px;
+  }
+  .fb-text-short { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .fb-expand-btn {
+    background: none; border: none; color: var(--green-1); font-size: 11px;
+    font-weight: 700; cursor: pointer; padding: 2px 0; margin-top: 4px;
+    display: inline-flex; align-items: center; gap: 4px; transition: var(--tr);
+    font-family: 'Syne', sans-serif;
+  }
+  .fb-expand-btn:hover { color: var(--green-2); }
+
+  /* Rating stars (visual only, derived from feedback length as proxy if no rating field) */
+  .fb-sentiment {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    font-family: 'Syne', sans-serif;
+  }
+  .fb-sentiment.positive { background: rgba(0,200,150,0.1);  color: var(--green-1); }
+  .fb-sentiment.neutral  { background: rgba(66,165,245,0.1); color: #42A5F5; }
+  .fb-sentiment.negative { background: rgba(255,112,67,0.1); color: var(--orange-1); }
+
+  /* ── CARD VIEW ── */
+  .fb-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px; padding: 24px;
+  }
+  .fb-feedback-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 20px; transition: var(--tr);
+    animation: fadeUp 0.35s ease both; position: relative; overflow: hidden;
+  }
+  .fb-feedback-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--green-1), var(--green-3));
+    border-radius: 14px 14px 0 0;
+  }
+  .fb-feedback-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); border-color: rgba(0,200,150,0.25); }
+  .fb-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .fb-card-user { display: flex; align-items: center; gap: 10px; }
+  .fb-card-avatar {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; color: #fff;
+  }
+  .fb-card-uname { font-size: 14px; font-weight: 700; color: var(--text-primary); font-family: 'Syne', sans-serif; }
+  .fb-card-date  { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .fb-quote-icon { font-size: 32px; color: var(--green-1); opacity: 0.15; line-height: 1; font-family: Georgia, serif; }
+  .fb-card-body {
+    font-size: 13px; color: var(--text-secondary); line-height: 1.7;
+    border-left: 3px solid rgba(0,200,150,0.25); padding-left: 12px; margin-bottom: 14px;
+  }
+  .fb-card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--text-muted);
+    padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  .fb-card-num {
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    background: rgba(0,200,150,0.08); color: var(--green-1);
+    padding: 2px 8px; border-radius: 20px;
+  }
+
+  /* ── Empty state ── */
+  .fb-empty { padding: 64px 24px; text-align: center; }
+  .fb-empty-icon {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: rgba(0,200,150,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--green-1); margin: 0 auto 16px;
+  }
+  .fb-empty h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .fb-empty p  { font-size: 13px; color: var(--text-muted); }
+
+  /* ── Pagination ── */
+  .fb-pagination {
+    padding: 16px 24px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .fb-pag-info { font-size: 12px; color: var(--text-muted); }
+  .fb-pag-info strong { color: var(--text-primary); }
+  .fb-pages { display: flex; align-items: center; gap: 6px; }
+  .fb-page-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: var(--tr); font-family: 'Syne', sans-serif;
+  }
+  .fb-page-btn:hover { border-color: var(--green-1); color: var(--green-1); background: rgba(0,200,150,0.06); }
+  .fb-page-btn.active { background: var(--green-1); border-color: var(--green-1); color: #fff; }
+  .fb-page-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+  .fb-per-page { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .fb-per-page select {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 5px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; cursor: pointer; transition: var(--tr);
+  }
+  .fb-per-page select:focus { border-color: var(--green-1); }
+
+  @media(max-width:768px){
+    .fb-search input { width: 180px; }
+    .fb-filter-row { flex-direction: column; align-items: stretch; }
+    .fb-date-group { width: 100%; }
+    .fb-date-input { width: 100%; }
+  }
+  @media(max-width:480px){
+    .fb-toolbar { width: 100%; }
+    .fb-search { flex: 1; }
+    .fb-search input { width: 100%; }
+  }
+</style>
+
+{% if messages %}
+  <div style="margin-bottom:20px;">
+    {% for message in messages %}
+      <div style="padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:8px;
+        {% if message.tags == 'success' %}background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);color:var(--green-2);
+        {% else %}background:rgba(255,112,67,0.1);border:1px solid rgba(255,112,67,0.3);color:var(--orange-1);{% endif %}">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="fb-wrap">
+
+  <!-- Page heading -->
+  <div class="fb-breadcrumb">
+    <a href="/myapp/admin_home/#abc">Home</a>
+    <span>/</span><span>Feedback</span>
+  </div>
+  <h1 class="fb-page-title">User <span>Feedback</span></h1>
+  <p class="fb-page-sub">All feedback submitted by FoodSnap AI users.</p>
+
+  <!-- Stat bar -->
+  <div class="fb-statbar">
+    <div class="fb-stat">
+      <div class="fb-stat-icon green"><i class="fas fa-comment-dots"></i></div>
+      <div>
+        <div class="fb-stat-val">{{ data|length }}</div>
+        <div class="fb-stat-lbl">Total Feedback</div>
+      </div>
+    </div>
+    <div class="fb-stat">
+      <div class="fb-stat-icon blue"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="fb-stat-val" id="statUniqueUsers">—</div>
+        <div class="fb-stat-lbl">Unique Users</div>
+      </div>
+    </div>
+    <div class="fb-stat">
+      <div class="fb-stat-icon purple"><i class="fas fa-calendar-day"></i></div>
+      <div>
+        <div class="fb-stat-val" id="statToday">—</div>
+        <div class="fb-stat-lbl">Today</div>
+      </div>
+    </div>
+    <div class="fb-stat">
+      <div class="fb-stat-icon orange"><i class="fas fa-filter"></i></div>
+      <div>
+        <div class="fb-stat-val" id="statFiltered">{{ data|length }}</div>
+        <div class="fb-stat-lbl">Showing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main card -->
+  <div class="fb-card">
+    <div class="fb-card-header">
+
+      <!-- Top row: title + toolbar -->
+      <div class="fb-card-header-top">
+        <div>
+          <div class="fb-card-title">All Feedback</div>
+          <div class="fb-card-sub" id="fbHeaderCount">Loading…</div>
+        </div>
+        <div class="fb-toolbar">
+          <div class="fb-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="fbSearch" placeholder="Search user or feedback…">
+          </div>
+          <div class="fb-view-toggle">
+            <button class="fb-view-btn active" id="btnTable" title="Table view" onclick="setView('table')">
+              <i class="fas fa-list"></i>
+            </button>
+            <button class="fb-view-btn" id="btnCards" title="Card view" onclick="setView('cards')">
+              <i class="fas fa-th-large"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Date filter row -->
+      <div class="fb-filter-row">
+        <div class="fb-date-group">
+          <label class="fb-date-label"><i class="fas fa-calendar-alt"></i> From Date</label>
+          <input type="date" id="fromDate" class="fb-date-input">
+        </div>
+        <div class="fb-date-group">
+          <label class="fb-date-label"><i class="fas fa-calendar-alt"></i> To Date</label>
+          <input type="date" id="toDate" class="fb-date-input">
+        </div>
+        <button class="fb-filter-btn" onclick="applyDateFilter()">
+          <i class="fas fa-filter"></i> Apply Filter
+        </button>
+        <button class="fb-clear-btn" onclick="clearFilter()">
+          <i class="fas fa-times"></i> Clear
+        </button>
+      </div>
+
+      <!-- Active filter indicator -->
+      <div class="fb-active-filter" id="activeFilterBadge">
+        <i class="fas fa-calendar-check"></i>
+        <span id="activeFilterText">—</span>
+        <button onclick="clearFilter()"><i class="fas fa-times"></i></button>
+      </div>
+
+    </div><!-- /fb-card-header -->
+
+    <!-- TABLE VIEW -->
+    <div id="tableView">
+      <div class="fb-table-wrap">
+        <table class="fb-table">
+          <thead>
+            <tr>
+              <th style="width:48px">#</th>
+              <th data-col="date">Date <i class="fas fa-sort sort-icon"></i></th>
+              <th data-col="user">User <i class="fas fa-sort sort-icon"></i></th>
+              <th data-col="feedback">Feedback <i class="fas fa-sort sort-icon"></i></th>
+              <th style="width:110px">Sentiment</th>
+            </tr>
+          </thead>
+          <tbody id="fbTbody">
+            {% for i in data %}
+            <tr class="fb-data-row"
+                data-date="{{ i.Date }}"
+                data-user="{{ i.USERS.Name|lower|default:'' }}"
+                data-feedback="{{ i.Feedback|lower|default:'' }}"
+                data-date-raw="{{ i.Date }}">
+
+              <td class="fb-idx">{{ forloop.counter }}</td>
+
+              <!-- Date -->
+              <td>
+                <div class="fb-date-cell">
+                  <div class="fb-date-main">{{ i.Date }}</div>
+                  <div class="fb-date-rel" data-date="{{ i.Date }}"></div>
+                </div>
+              </td>
+
+              <!-- User -->
+              <td>
+                <div class="fb-user-cell">
+                  <div class="fb-avatar">{{ i.USERS.Name|slice:":1"|upper|default:"?" }}</div>
+                  <div class="fb-user-name">{{ i.USERS.Name|default:"Unknown" }}</div>
+                </div>
+              </td>
+
+              <!-- Feedback -->
+              <td>
+                <div class="fb-text-cell">
+                  <div class="fb-text-short" id="fbText{{ forloop.counter }}">{{ i.Feedback }}</div>
+                  {% if i.Feedback|length > 120 %}
+                  <button class="fb-expand-btn" onclick="toggleExpand('fbText{{ forloop.counter }}', this)">
+                    <i class="fas fa-chevron-down"></i> Show more
+                  </button>
+                  {% endif %}
+                </div>
+              </td>
+
+              <!-- Sentiment (auto-detected) -->
+              <td>
+                <span class="fb-sentiment" data-text="{{ i.Feedback|lower }}"></span>
+              </td>
+
+            </tr>
+            {% empty %}{% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="fb-empty" id="fbEmpty" style="display:none;">
+        <div class="fb-empty-icon"><i class="fas fa-comment-dots"></i></div>
+        <h3 id="fbEmptyTitle">No feedback found</h3>
+        <p id="fbEmptyDesc">No feedback matches your current filters.</p>
+      </div>
+    </div><!-- /tableView -->
+
+    <!-- CARD VIEW -->
+    <div id="cardsView" style="display:none;">
+      <div class="fb-cards-grid" id="fbCardsGrid">
+        {% for i in data %}
+        <div class="fb-feedback-card fb-card-row"
+             data-date="{{ i.Date }}"
+             data-user="{{ i.USERS.Name|lower|default:'' }}"
+             data-feedback="{{ i.Feedback|lower|default:'' }}"
+             data-date-raw="{{ i.Date }}"
+             style="animation-delay:{{ forloop.counter0 }}00ms">
+          <div class="fb-card-top">
+            <div class="fb-card-user">
+              <div class="fb-card-avatar">{{ i.USERS.Name|slice:":1"|upper|default:"?" }}</div>
+              <div>
+                <div class="fb-card-uname">{{ i.USERS.Name|default:"Unknown" }}</div>
+                <div class="fb-card-date">{{ i.Date }}</div>
+              </div>
+            </div>
+            <div class="fb-quote-icon">&ldquo;</div>
+          </div>
+          <div class="fb-card-body">{{ i.Feedback }}</div>
+          <div class="fb-card-footer">
+            <span class="fb-sentiment" data-text="{{ i.Feedback|lower }}"></span>
+            <span class="fb-card-num">#{{ forloop.counter }}</span>
+          </div>
+        </div>
+        {% empty %}{% endfor %}
+      </div>
+
+      <div class="fb-empty" id="fbCardsEmpty" style="display:none;">
+        <div class="fb-empty-icon"><i class="fas fa-comment-dots"></i></div>
+        <h3>No feedback found</h3>
+        <p>Try adjusting your filters.</p>
+      </div>
+    </div><!-- /cardsView -->
+
+    <!-- Pagination -->
+    <div class="fb-pagination">
+      <div class="fb-per-page">
+        Show
+        <select id="fbPerPage">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="all">All</option>
+        </select>
+        per page
+      </div>
+      <div class="fb-pag-info" id="fbPagInfo">—</div>
+      <div class="fb-pages" id="fbPages"></div>
+    </div>
+  </div>
+
+</div><!-- /fb-wrap -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+
+  /* ── ROWS ── */
+  const allTableRows = Array.from(document.querySelectorAll('.fb-data-row'));
+  const allCardRows  = Array.from(document.querySelectorAll('.fb-card-row'));
+
+  /* ── SENTIMENT LABELS ── */
+  const positiveWords = ['good','great','excellent','amazing','love','wonderful','fantastic','best','happy','awesome','perfect','thanks','helpful','nice','smooth','fast','easy','clear','satisfied','impressed'];
+  const negativeWords = ['bad','poor','worst','terrible','horrible','issue','problem','fail','wrong','slow','crash','error','broken','annoying','disappointed','unhappy','difficult','confusing','bug','fix'];
+
+  function getSentiment(text) {
+    const t = (text || '').toLowerCase();
+    let pos = 0, neg = 0;
+    positiveWords.forEach(w => { if (t.includes(w)) pos++; });
+    negativeWords.forEach(w => { if (t.includes(w)) neg++; });
+    if (pos > neg) return { cls: 'positive', icon: 'fa-smile', label: 'Positive' };
+    if (neg > pos) return { cls: 'negative', icon: 'fa-frown', label: 'Negative' };
+    return { cls: 'neutral', icon: 'fa-meh', label: 'Neutral' };
+  }
+
+  document.querySelectorAll('.fb-sentiment[data-text]').forEach(el => {
+    const s = getSentiment(el.dataset.text);
+    el.className = `fb-sentiment ${s.cls}`;
+    el.innerHTML = `<i class="fas ${s.icon}"></i> ${s.label}`;
+  });
+
+  /* ── RELATIVE DATE ── */
+  function relativeDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d)) return '';
+      const diff = Math.floor((Date.now() - d) / 86400000);
+      if (diff === 0) return 'Today';
+      if (diff === 1) return 'Yesterday';
+      if (diff < 7)  return diff + ' days ago';
+      if (diff < 30) return Math.floor(diff/7) + ' weeks ago';
+      if (diff < 365)return Math.floor(diff/30) + ' months ago';
+      return Math.floor(diff/365) + ' years ago';
+    } catch(e) { return ''; }
+  }
+
+  document.querySelectorAll('.fb-date-rel[data-date]').forEach(el => {
+    el.textContent = relativeDate(el.dataset.date);
+  });
+
+  /* ── STATS ── */
+  const uniqueUsers = new Set(allTableRows.map(r => r.dataset.user).filter(Boolean));
+  document.getElementById('statUniqueUsers').textContent = uniqueUsers.size || '—';
+
+  const today = new Date().toISOString().slice(0,10);
+  const todayCount = allTableRows.filter(r => (r.dataset.dateRaw || r.dataset.date || '').toString().startsWith(today)).length;
+  document.getElementById('statToday').textContent = todayCount;
+
+  /* ── STATE ── */
+  let currentView = 'table';
+  let searchVal   = '';
+  let fromDate    = null;
+  let toDate      = null;
+  let currentPage = 1;
+  let perPage     = 10;
+  let filteredTable = [...allTableRows];
+  let filteredCards = [...allCardRows];
+
+  /* ── VIEW TOGGLE ── */
+  window.setView = function (v) {
+    currentView = v;
+    document.getElementById('tableView').style.display  = v === 'table'  ? '' : 'none';
+    document.getElementById('cardsView').style.display  = v === 'cards'  ? '' : 'none';
+    document.getElementById('btnTable').classList.toggle('active', v === 'table');
+    document.getElementById('btnCards').classList.toggle('active', v === 'cards');
+    currentPage = 1;
+    applyFilters();
+  };
+
+  /* ── SEARCH ── */
+  document.getElementById('fbSearch').addEventListener('input', function () {
+    searchVal = this.value.trim().toLowerCase();
+    currentPage = 1;
+    applyFilters();
+  });
+
+  /* ── DATE FILTER ── */
+  window.applyDateFilter = function () {
+    fromDate = document.getElementById('fromDate').value || null;
+    toDate   = document.getElementById('toDate').value   || null;
+    currentPage = 1;
+
+    const badge = document.getElementById('activeFilterBadge');
+    const text  = document.getElementById('activeFilterText');
+    if (fromDate || toDate) {
+      badge.classList.add('show');
+      text.textContent = (fromDate || '—') + ' → ' + (toDate || '—');
+    } else {
+      badge.classList.remove('show');
+    }
+    applyFilters();
+  };
+
+  window.clearFilter = function () {
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value   = '';
+    fromDate = null; toDate = null;
+    document.getElementById('activeFilterBadge').classList.remove('show');
+    currentPage = 1;
+    applyFilters();
+  };
+
+  /* ── Also react to live date input changes ── */
+  document.getElementById('fromDate').addEventListener('change', applyDateFilter);
+  document.getElementById('toDate').addEventListener('change',   applyDateFilter);
+
+  /* ── FILTER FUNCTION ── */
+  function matchesFilters(row) {
+    const q = searchVal;
+    const searchMatch = !q ||
+      (row.dataset.user     || '').includes(q) ||
+      (row.dataset.feedback || '').includes(q);
+
+    let dateMatch = true;
+    if (fromDate || toDate) {
+      const raw = (row.dataset.dateRaw || row.dataset.date || '').toString().slice(0,10);
+      if (!raw) return false;
+      if (fromDate && raw < fromDate) dateMatch = false;
+      if (toDate   && raw > toDate)   dateMatch = false;
+    }
+    return searchMatch && dateMatch;
+  }
+
+  function applyFilters() {
+    filteredTable = allTableRows.filter(matchesFilters);
+    filteredCards = allCardRows.filter(matchesFilters);
+
+    document.getElementById('statFiltered').textContent =
+      currentView === 'table' ? filteredTable.length : filteredCards.length;
+
+    if (currentView === 'table') renderTable();
+    else renderCards();
+  }
+
+  /* ── RENDER TABLE ── */
+  function renderTable() {
+    allTableRows.forEach(r => r.style.display = 'none');
+    const empty = document.getElementById('fbEmpty');
+
+    if (filteredTable.length === 0) {
+      empty.style.display = '';
+      document.getElementById('fbEmptyTitle').textContent = searchVal || fromDate || toDate ? 'No results found' : 'No feedback yet';
+      document.getElementById('fbEmptyDesc').textContent  = 'Try adjusting your search or date filters.';
+      document.getElementById('fbHeaderCount').textContent = '0 entries';
+      document.getElementById('fbPagInfo').textContent     = 'Showing 0 of 0';
+      document.getElementById('fbPages').innerHTML = '';
+      return;
+    }
+
+    empty.style.display = 'none';
+    const total = filteredTable.length;
+    const limit = perPage === 'all' ? total : perPage;
+    const pages = Math.ceil(total / limit);
+    if (currentPage > pages) currentPage = pages;
+
+    const start = (currentPage - 1) * limit;
+    const end   = Math.min(start + limit, total);
+
+    filteredTable.forEach((r, idx) => {
+      if (idx >= start && idx < end) {
+        r.style.display = '';
+        r.querySelector('.fb-idx').textContent = idx + 1;
+      }
+    });
+
+    document.getElementById('fbHeaderCount').textContent =
+      `${total} entr${total !== 1 ? 'ies' : 'y'}${searchVal ? ' · "' + searchVal + '"' : ''}`;
+    document.getElementById('fbPagInfo').innerHTML =
+      `Showing <strong>${start+1}–${end}</strong> of <strong>${total}</strong>`;
+    renderPages(pages);
+  }
+
+  /* ── RENDER CARDS ── */
+  function renderCards() {
+    allCardRows.forEach(c => c.style.display = 'none');
+    const empty = document.getElementById('fbCardsEmpty');
+
+    if (filteredCards.length === 0) {
+      empty.style.display = '';
+      document.getElementById('fbHeaderCount').textContent = '0 entries';
+      document.getElementById('fbPagInfo').textContent = 'Showing 0 of 0';
+      document.getElementById('fbPages').innerHTML = '';
+      return;
+    }
+
+    empty.style.display = 'none';
+    const total = filteredCards.length;
+    const limit = perPage === 'all' ? total : perPage;
+    const pages = Math.ceil(total / limit);
+    if (currentPage > pages) currentPage = pages;
+
+    const start = (currentPage - 1) * limit;
+    const end   = Math.min(start + limit, total);
+
+    filteredCards.forEach((c, idx) => {
+      if (idx >= start && idx < end) {
+        c.style.display = '';
+        c.style.animationDelay = ((idx - start) * 0.05) + 's';
+      }
+    });
+
+    document.getElementById('fbHeaderCount').textContent =
+      `${total} entr${total !== 1 ? 'ies' : 'y'}${searchVal ? ' · "' + searchVal + '"' : ''}`;
+    document.getElementById('fbPagInfo').innerHTML =
+      `Showing <strong>${start+1}–${end}</strong> of <strong>${total}</strong>`;
+    renderPages(pages);
+  }
+
+  /* ── PAGINATION ── */
+  function renderPages(total) {
+    const div = document.getElementById('fbPages');
+    div.innerHTML = '';
+    if (total <= 1) return;
+
+    const mk = (label, page, active, disabled) => {
+      const b = document.createElement('button');
+      b.className = 'fb-page-btn' + (active ? ' active' : '') + (disabled ? ' disabled' : '');
+      b.innerHTML = label;
+      if (!disabled && !active) b.onclick = () => {
+        currentPage = page;
+        currentView === 'table' ? renderTable() : renderCards();
+      };
+      return b;
+    };
+
+    div.appendChild(mk('<i class="fas fa-chevron-left"></i>', currentPage - 1, false, currentPage === 1));
+
+    const range = [];
+    if (total <= 7) { for (let i = 1; i <= total; i++) range.push(i); }
+    else {
+      range.push(1);
+      if (currentPage > 3) range.push('…');
+      for (let i = Math.max(2, currentPage-1); i <= Math.min(total-1, currentPage+1); i++) range.push(i);
+      if (currentPage < total-2) range.push('…');
+      range.push(total);
+    }
+
+    range.forEach(p => {
+      if (p === '…') {
+        const s = document.createElement('span');
+        s.textContent = '…'; s.style.cssText = 'color:var(--text-muted);font-size:13px;padding:0 4px;';
+        div.appendChild(s);
+      } else {
+        div.appendChild(mk(p, p, p === currentPage, false));
+      }
+    });
+
+    div.appendChild(mk('<i class="fas fa-chevron-right"></i>', currentPage + 1, false, currentPage === total));
+  }
+
+  /* ── PER PAGE ── */
+  document.getElementById('fbPerPage').addEventListener('change', function () {
+    perPage = this.value === 'all' ? 'all' : parseInt(this.value);
+    currentPage = 1;
+    applyFilters();
+  });
+
+  /* ── SORT ── */
+  document.querySelectorAll('.fb-table thead th[data-col]').forEach(th => {
+    let asc = true;
+    th.addEventListener('click', function () {
+      document.querySelectorAll('.fb-table thead th').forEach(t => t.classList.remove('sorted'));
+      this.classList.add('sorted');
+      const col = this.dataset.col;
+      const icon = this.querySelector('.sort-icon');
+      icon.className = `fas fa-sort-${asc ? 'up' : 'down'} sort-icon`;
+
+      filteredTable.sort((a, b) => {
+        let va = '', vb = '';
+        if (col === 'date')     { va = a.dataset.date;     vb = b.dataset.date; }
+        if (col === 'user')     { va = a.dataset.user;     vb = b.dataset.user; }
+        if (col === 'feedback') { va = a.dataset.feedback; vb = b.dataset.feedback; }
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+
+      asc = !asc;
+      currentPage = 1;
+      renderTable();
+    });
+  });
+
+  /* ── EXPAND/COLLAPSE ── */
+  window.toggleExpand = function (id, btn) {
+    const el = document.getElementById(id);
+    const expanded = el.style.webkitLineClamp === 'unset' || el.classList.contains('expanded');
+    if (expanded) {
+      el.style.cssText = '';
+      el.classList.remove('expanded');
+      btn.innerHTML = '<i class="fas fa-chevron-down"></i> Show more';
+    } else {
+      el.style.display = 'block';
+      el.style.webkitLineClamp = 'unset';
+      el.style.overflow = 'visible';
+      el.classList.add('expanded');
+      btn.innerHTML = '<i class="fas fa-chevron-up"></i> Show less';
+    }
+  };
+
+  /* ── INIT ── */
+  applyFilters();
+
+})();
+</script>
+{% endblock %}

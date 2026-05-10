@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>FoodSnap AI — Admin Dashboard</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="/static/home/img/favicon.ico" rel="icon">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --green-1: #00C896;
+            --green-2: #00A97A;
+            --green-3: #006B4F;
+            --orange-1: #FF7043;
+            --orange-2: #E64A19;
+            --red-1: #EF5350;
+            --blue-1: #42A5F5;
+            --purple-1: #AB47BC;
+            --teal-1: #26C6DA;
+            --bg: #F0F4F3;
+            --card: #FFFFFF;
+            --border: rgba(0,200,150,0.12);
+            --text-primary: #0D2318;
+            --text-secondary: #5A7068;
+            --text-muted: #9AB0A8;
+            --sidebar-w: 260px;
+            --sidebar-collapsed: 72px;
+            --header-h: 68px;
+            --radius: 16px;
+            --shadow: 0 2px 20px rgba(0,0,0,0.06);
+            --shadow-hover: 0 8px 32px rgba(0,200,150,0.18);
+            --tr: all 0.28s cubic-bezier(0.4,0,0.2,1);
+        }
+        .dark-mode {
+            --bg: #0D1F1A;
+            --card: #132A22;
+            --border: rgba(0,200,150,0.15);
+            --text-primary: #E8F5F0;
+            --text-secondary: #7ABAA8;
+            --text-muted: #4A6A5A;
+            --shadow: 0 2px 16px rgba(0,0,0,0.4);
+            --shadow-hover: 0 8px 32px rgba(0,200,150,0.25);
+        }
+
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html { scroll-behavior: smooth; }
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);transition:var(--tr);overflow-x:hidden;}
+
+        /* ── CRITICAL FIX: scroll-margin-top on all anchor targets ── */
+        [id] {
+            scroll-margin-top: calc(var(--header-h) + 16px);
+        }
+
+        /* ── SIDEBAR ── */
+        .sidebar{
+            position:fixed;left:0;top:0;bottom:0;
+            width:var(--sidebar-w);
+            background:var(--card);
+            border-right:1px solid var(--border);
+            z-index:1000;
+            display:flex;flex-direction:column;
+            transition:var(--tr);
+            overflow:hidden;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.04);
+        }
+        .sidebar.collapsed{width:var(--sidebar-collapsed);}
+
+        .sidebar-logo{
+            display:flex;align-items:center;gap:12px;
+            padding:20px 20px 16px;
+            border-bottom:1px solid var(--border);
+            min-height:var(--header-h);
+            text-decoration:none;
+        }
+        .logo-icon{
+            width:38px;height:38px;
+            background:linear-gradient(135deg,var(--green-1),var(--green-3));
+            border-radius:11px;
+            display:flex;align-items:center;justify-content:center;
+            font-size:18px;color:#fff;flex-shrink:0;
+            box-shadow: 0 4px 12px rgba(0,200,150,0.35);
+        }
+        .logo-text{
+            font-family:'Syne',sans-serif;font-weight:800;font-size:18px;
+            color:var(--text-primary);white-space:nowrap;overflow:hidden;transition:var(--tr);
+        }
+        .logo-text span{color:var(--green-1);}
+        .logo-badge {
+            font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+            background:linear-gradient(135deg,var(--green-1),var(--green-3));
+            color:#fff;padding:2px 7px;border-radius:20px;
+            margin-left:4px;vertical-align:middle;
+        }
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .nav-label,
+        .sidebar.collapsed .logo-badge { opacity:0;width:0;overflow:hidden; }
+
+        .sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto;}
+
+        .nav-section-label{
+            font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+            color:var(--text-muted);padding:10px 10px 6px;white-space:nowrap;overflow:hidden;
+            transition:var(--tr);
+        }
+        .sidebar.collapsed .nav-section-label{opacity:0;height:0;padding:0;}
+
+        .nav-link-custom{
+            display:flex;align-items:center;gap:12px;
+            padding:10px 12px;border-radius:12px;
+            text-decoration:none;color:var(--text-secondary);
+            font-size:13.5px;font-weight:500;white-space:nowrap;
+            transition:var(--tr);margin-bottom:3px;position:relative;
+        }
+        .nav-link-custom .nav-icon {
+            width:34px;height:34px;border-radius:9px;
+            display:flex;align-items:center;justify-content:center;
+            font-size:14px;flex-shrink:0;
+            background:transparent;
+            transition:var(--tr);
+        }
+        .nav-link-custom:hover .nav-icon{background:rgba(0,200,150,0.1);}
+        .nav-link-custom:hover{color:var(--green-1);}
+        .nav-link-custom.active .nav-icon{
+            background:linear-gradient(135deg,var(--green-1),var(--green-2));
+            color:#fff;
+            box-shadow:0 4px 12px rgba(0,200,150,0.3);
+        }
+        .nav-link-custom.active{color:var(--green-1);font-weight:600;}
+        .nav-link-danger{color:var(--red-1)!important;}
+        .nav-link-danger .nav-icon{color:var(--red-1)!important;}
+        .nav-link-danger:hover .nav-icon{background:rgba(239,83,80,0.1)!important;}
+
+        .sidebar-footer{padding:16px 12px;border-top:1px solid var(--border);}
+
+        /* ── MAIN WRAPPER ── */
+        .main-wrapper{margin-left:var(--sidebar-w);transition:var(--tr);min-height:100vh;display:flex;flex-direction:column;}
+        .main-wrapper.expanded{margin-left:var(--sidebar-collapsed);}
+
+        /* ── HEADER ── */
+        .top-header{
+            position:sticky;top:0;height:var(--header-h);
+            background:rgba(255,255,255,0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom:1px solid var(--border);
+            display:flex;align-items:center;padding:0 28px;gap:16px;
+            z-index:900;transition:var(--tr);
+        }
+        .dark-mode .top-header {
+            background: rgba(19,42,34,0.88);
+        }
+        .btn-toggle{background:none;border:none;color:var(--text-secondary);font-size:18px;cursor:pointer;padding:8px;border-radius:10px;transition:var(--tr);}
+        .btn-toggle:hover{background:rgba(0,200,150,0.08);color:var(--green-1);}
+
+        .header-search{flex:1;max-width:400px;position:relative;}
+        .header-search input{
+            width:100%;background:var(--bg);border:1.5px solid var(--border);
+            border-radius:12px;padding:9px 18px 9px 42px;
+            font-size:13.5px;font-family:'DM Sans',sans-serif;color:var(--text-primary);outline:none;transition:var(--tr);
+        }
+        .header-search input:focus{border-color:var(--green-1);box-shadow:0 0 0 4px rgba(0,200,150,0.1);}
+        .header-search input::placeholder{color:var(--text-muted);}
+        .header-search i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:14px;}
+
+        .header-actions{display:flex;align-items:center;gap:10px;margin-left:auto;}
+
+        .hbtn{
+            width:40px;height:40px;background:var(--bg);border:1.5px solid var(--border);
+            border-radius:11px;display:flex;align-items:center;justify-content:center;
+            cursor:pointer;color:var(--text-secondary);font-size:15px;
+            transition:var(--tr);position:relative;text-decoration:none;
+        }
+        .hbtn:hover{background:rgba(0,200,150,0.08);color:var(--green-1);border-color:var(--green-1);}
+        .notif-dot{
+            position:absolute;top:7px;right:7px;
+            width:7px;height:7px;background:var(--orange-1);
+            border-radius:50%;border:2px solid var(--card);
+        }
+
+        .dark-btn{
+            background:var(--bg);border:1.5px solid var(--border);border-radius:11px;
+            padding:7px 14px;cursor:pointer;color:var(--text-secondary);font-size:13px;font-weight:500;
+            display:flex;align-items:center;gap:6px;transition:var(--tr);
+        }
+        .dark-btn:hover{color:var(--green-1);border-color:var(--green-1);background:rgba(0,200,150,0.06);}
+
+        .admin-chip{
+            display:flex;align-items:center;gap:8px;
+            background:var(--bg);border:1.5px solid var(--border);
+            border-radius:11px;padding:5px 12px 5px 6px;
+            cursor:pointer;transition:var(--tr);position:relative;
+        }
+        .admin-chip:hover{border-color:var(--green-1);background:rgba(0,200,150,0.04);}
+        .admin-avatar{
+            width:30px;height:30px;
+            background:linear-gradient(135deg,var(--green-1),var(--green-3));
+            border-radius:8px;display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:11px;font-weight:700;font-family:'Syne',sans-serif;
+            box-shadow:0 3px 8px rgba(0,200,150,0.3);
+        }
+        .admin-name{font-size:13px;font-weight:600;color:var(--text-primary);}
+
+        .dropdown-panel{
+            display:none;position:absolute;right:0;top:calc(100% + 8px);
+            background:var(--card);border:1px solid var(--border);
+            border-radius:var(--radius);box-shadow:var(--shadow-hover);
+            min-width:190px;overflow:hidden;z-index:9999;
+        }
+        .admin-chip:hover .dropdown-panel{display:block;}
+        .dropdown-panel a{
+            display:flex;align-items:center;gap:10px;
+            padding:11px 16px;color:var(--text-secondary);
+            text-decoration:none;font-size:13.5px;transition:var(--tr);
+        }
+        .dropdown-panel a:hover{background:rgba(0,200,150,0.06);color:var(--green-1);}
+        .dropdown-divider{height:1px;background:var(--border);}
+
+        /* ── CONTENT ── */
+        .content{padding:32px 28px;}
+
+        .page-header{margin-bottom:32px;}
+        .breadcrumb-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);margin-bottom:8px;}
+        .breadcrumb-row a{color:var(--green-1);text-decoration:none;}
+        .breadcrumb-row a:hover{text-decoration:underline;}
+        .page-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--text-primary);line-height:1.1;}
+        .page-title span{color:var(--green-1);}
+        .page-sub{color:var(--text-muted);font-size:14px;margin-top:6px;}
+
+        /* ── QUICK ACTIONS ── */
+        .qa-card{
+            background:var(--card);border-radius:var(--radius);padding:24px;
+            box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:24px;
+            position:relative;overflow:hidden;
+        }
+        .qa-card::before {
+            content:'';position:absolute;top:-40px;right:-40px;
+            width:180px;height:180px;border-radius:50%;
+            background:radial-gradient(circle,rgba(0,200,150,0.07) 0%,transparent 70%);
+            pointer-events:none;
+        }
+        .section-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text-primary);}
+        .section-sub{font-size:12px;color:var(--text-muted);margin-top:2px;margin-bottom:18px;}
+        .qa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:12px;}
+        .qa-btn{
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+            padding:20px 12px;border-radius:14px;border:1.5px solid var(--border);
+            background:var(--bg);color:var(--text-secondary);text-decoration:none;
+            font-size:13px;font-weight:600;font-family:'Syne',sans-serif;
+            transition:var(--tr);text-align:center;position:relative;overflow:hidden;
+        }
+        .qa-btn::after {
+            content:'';position:absolute;inset:0;
+            background:linear-gradient(135deg,rgba(255,255,255,0.05),transparent);
+            pointer-events:none;
+        }
+        .qa-btn i{
+            font-size:22px;width:46px;height:46px;border-radius:13px;
+            display:flex;align-items:center;justify-content:center;transition:var(--tr);
+        }
+        .qa-btn:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);color:var(--green-1);border-color:var(--green-1);background:var(--card);}
+        .qa-green i{background:rgba(0,200,150,0.12);color:var(--green-1);}
+        .qa-orange i{background:rgba(255,112,67,0.12);color:var(--orange-1);}
+        .qa-blue i{background:rgba(66,165,245,0.12);color:var(--blue-1);}
+        .qa-purple i{background:rgba(171,71,188,0.12);color:var(--purple-1);}
+        .qa-teal i{background:rgba(38,198,218,0.12);color:var(--teal-1);}
+
+        /* ── STAT CARDS ── */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px;margin-bottom:24px;}
+        .stat-card{
+            background:var(--card);border-radius:var(--radius);padding:22px;
+            box-shadow:var(--shadow);border:1px solid var(--border);
+            transition:var(--tr);position:relative;overflow:hidden;
+        }
+        .stat-card::before{
+            content:'';position:absolute;top:0;left:0;right:0;height:4px;
+            border-radius:var(--radius) var(--radius) 0 0;
+        }
+        .stat-card::after {
+            content:'';position:absolute;bottom:-20px;right:-20px;
+            width:90px;height:90px;border-radius:50%;opacity:0.04;
+            transition:var(--tr);
+        }
+        .stat-card:hover::after { transform:scale(1.3); }
+
+        .stat-card.c-green::before{background:linear-gradient(90deg,var(--green-1),var(--green-3));}
+        .stat-card.c-green::after{background:var(--green-1);}
+        .stat-card.c-blue::before{background:linear-gradient(90deg,var(--blue-1),#1565C0);}
+        .stat-card.c-blue::after{background:var(--blue-1);}
+        .stat-card.c-teal::before{background:linear-gradient(90deg,var(--teal-1),#00838F);}
+        .stat-card.c-teal::after{background:var(--teal-1);}
+        .stat-card.c-orange::before{background:linear-gradient(90deg,var(--orange-1),var(--orange-2));}
+        .stat-card.c-orange::after{background:var(--orange-1);}
+        .stat-card.c-purple::before{background:linear-gradient(90deg,var(--purple-1),#6A1B9A);}
+        .stat-card.c-purple::after{background:var(--purple-1);}
+        .stat-card.c-red::before{background:linear-gradient(90deg,var(--red-1),#C62828);}
+        .stat-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-hover);}
+
+        .stat-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+        .stat-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:19px;}
+        .c-green .stat-icon{background:rgba(0,200,150,0.12);color:var(--green-1);}
+        .c-blue .stat-icon{background:rgba(66,165,245,0.12);color:var(--blue-1);}
+        .c-teal .stat-icon{background:rgba(38,198,218,0.12);color:var(--teal-1);}
+        .c-orange .stat-icon{background:rgba(255,112,67,0.12);color:var(--orange-1);}
+        .c-purple .stat-icon{background:rgba(171,71,188,0.12);color:var(--purple-1);}
+        .c-red .stat-icon{background:rgba(239,83,80,0.12);color:var(--red-1);}
+
+        .stat-number{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--text-primary);line-height:1;margin-bottom:6px;}
+        .stat-label{font-size:12.5px;color:var(--text-muted);font-weight:500;}
+
+        /* ── TABLES ── */
+        .tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:24px;}
+        .tbl-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;}
+        .tbl-head{padding:20px 22px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+        .tbl-scroll{overflow-x:auto;max-height:300px;overflow-y:auto;}
+
+        .dtable{width:100%;border-collapse:collapse;font-size:13px;}
+        .dtable thead th{
+            background:var(--bg);color:var(--text-muted);font-weight:600;
+            font-size:11px;letter-spacing:1px;text-transform:uppercase;
+            padding:10px 18px;border-bottom:1px solid var(--border);white-space:nowrap;
+        }
+        .dtable tbody tr{border-bottom:1px solid var(--border);transition:var(--tr);}
+        .dtable tbody tr:last-child{border-bottom:none;}
+        .dtable tbody tr:hover{background:rgba(0,200,150,0.04);}
+        .dtable tbody td{padding:12px 18px;color:var(--text-primary);vertical-align:middle;}
+
+        .ucell{display:flex;align-items:center;gap:10px;}
+        .uavatar{
+            width:32px;height:32px;border-radius:9px;
+            background:linear-gradient(135deg,var(--green-1),var(--green-3));
+            display:flex;align-items:center;justify-content:center;
+            color:#fff;font-size:11px;font-weight:700;flex-shrink:0;
+            font-family:'Syne',sans-serif;text-transform:uppercase;
+        }
+        .uname{font-weight:600;font-size:13px;}
+        .uemail{font-size:11.5px;color:var(--text-muted);}
+
+        .badge{padding:4px 11px;border-radius:20px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+        .b-green{background:rgba(0,200,150,0.12);color:var(--green-2);}
+        .b-orange{background:rgba(255,112,67,0.12);color:var(--orange-1);}
+        .b-red{background:rgba(239,83,80,0.12);color:var(--red-1);}
+        .b-blue{background:rgba(66,165,245,0.12);color:var(--blue-1);}
+        .b-gray{background:rgba(154,176,168,0.12);color:var(--text-muted);}
+
+        .view-all{font-size:12.5px;color:var(--green-1);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:5px;transition:var(--tr);padding:6px 12px;border-radius:8px;background:rgba(0,200,150,0.06);border:1px solid rgba(0,200,150,0.15);}
+        .view-all:hover{background:rgba(0,200,150,0.12);gap:8px;}
+
+        /* full-width complaint table */
+        .full-tbl-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden;margin-bottom:24px;}
+
+        /* empty state */
+        .empty-row td{text-align:center;padding:36px!important;color:var(--text-muted);font-size:13px;}
+        .empty-icon{width:52px;height:52px;border-radius:14px;background:var(--bg);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:22px;opacity:0.5;}
+
+        /* sidebar overlay mobile */
+        .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:999;}
+
+        /* scrollbar */
+        ::-webkit-scrollbar{width:5px;height:5px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+        ::-webkit-scrollbar-thumb:hover{background:var(--green-1);}
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .ani{animation:fadeUp 0.45s ease both;}
+        .ani:nth-child(1){animation-delay:.04s}.ani:nth-child(2){animation-delay:.09s}
+        .ani:nth-child(3){animation-delay:.14s}.ani:nth-child(4){animation-delay:.19s}
+        .ani:nth-child(5){animation-delay:.24s}.ani:nth-child(6){animation-delay:.29s}
+        .fade-in{animation:fadeIn 0.5s ease both;}
+
+        /* responsive */
+        @media(max-width:1100px){.tables-grid{grid-template-columns:1fr;}}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%);width:var(--sidebar-w)!important;}
+            .sidebar.mob-open{transform:translateX(0);}
+            .sidebar-overlay.active{display:block;}
+            .main-wrapper{margin-left:0!important;}
+            .content{padding:20px 16px;}
+            .stats-grid{grid-template-columns:repeat(2,1fr);}
+            .header-search{display:none;}
+        }
+        @media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;}.qa-grid{grid-template-columns:repeat(2,1fr);}}
+    </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sOverlay" onclick="closeSidebar()"></div>
+
+<!-- ═══════════════════════════
+     SIDEBAR
+═══════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+    <a href="/myapp/admin_home/#abc" class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-seedling"></i></div>
+        <span class="logo-text">Food<span>Snap</span> AI</span>
+    </a>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="/myapp/admin_home/#abc" class="nav-link-custom active">
+            <span class="nav-icon"><i class="fas fa-th-large"></i></span>
+            <span class="nav-label">Dashboard</span>
+        </a>
+        <a href="/myapp/admin_view_user/#a" class="nav-link-custom">
+            <span class="nav-icon"><i class="fas fa-users"></i></span>
+            <span class="nav-label">Users</span>
+        </a>
+
+        <div class="nav-section-label" style="margin-top:10px">Food</div>
+        <a href="/myapp/admin_add_food/#a" class="nav-link-custom">
+            <span class="nav-icon"><i class="fas fa-plus-circle"></i></span>
+            <span class="nav-label">Add Food</span>
+        </a>
+        <a href="/myapp/admin_view_food_database/#a" class="nav-link-custom">
+            <span class="nav-icon"><i class="fas fa-database"></i></span>
+            <span class="nav-label">Food Database</span>
+        </a>
+
+        <div class="nav-section-label" style="margin-top:10px">Support</div>
+        <a href="/myapp/admin_view_feedback/#a" class="nav-link-custom">
+            <span class="nav-icon"><i class="fas fa-comment-dots"></i></span>
+            <span class="nav-label">Feedback</span>
+        </a>
+
+        <div class="nav-section-label" style="margin-top:10px">Account</div>
+        <a href="/myapp/admin_change_password/#a" class="nav-link-custom">
+            <span class="nav-icon"><i class="fas fa-cog"></i></span>
+            <span class="nav-label">Password Manager</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="/myapp/login_get/" class="nav-link-custom nav-link-danger">
+            <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+            <span class="nav-label">Logout</span>
+        </a>
+    </div>
+</aside>
+
+<!-- ═══════════════════════════
+     MAIN
+═══════════════════════════ -->
+<div class="main-wrapper" id="mainWrap">
+
+    <!-- Header -->
+    <header class="top-header">
+        <button class="btn-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+
+        <div class="header-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search users, food, complaints…">
+        </div>
+
+        <div class="header-actions">
+            <span class="hbtn" title="Notifications">
+                <i class="fas fa-bell"></i>
+                {% if pending_complaints > 0 %}<span class="notif-dot"></span>{% endif %}
+            </span>
+
+            <button class="dark-btn" onclick="toggleDark()">
+                <i class="fas fa-moon" id="darkIcon"></i>
+                <span id="darkLabel">Dark</span>
+            </button>
+
+            <div class="admin-chip">
+                <div class="admin-avatar">{{ request.user.username|slice:":2"|upper }}</div>
+                <span class="admin-name">{{ request.user.username }}</span>
+                <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text-muted);margin-left:2px;"></i>
+                <div class="dropdown-panel">
+                    <a href="/myapp/admin_change_password/#abc"><i class="fas fa-key"></i> Change Password</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="/myapp/login_get/" style="color:var(--red-1)"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content" id="abc">
+
+        <!-- Page Title -->
+        <div class="page-header fade-in">
+            <div class="breadcrumb-row">
+                <i class="fas fa-home" style="font-size:11px;"></i>
+                <a href="/myapp/admin_home/#abc">Home</a>
+                <i class="fas fa-chevron-right" style="font-size:9px;"></i>
+                <span>Dashboard</span>
+            </div>
+            <h1 class="page-title">Admin <span>Dashboard</span></h1>
+            <p class="page-sub">Welcome back, {{ request.user.username }}. Here's your system overview.</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="qa-card">
+            <div class="section-title">Quick Actions</div>
+            <div class="section-sub">Common admin tasks at a glance</div>
+            <div class="qa-grid">
+                <a href="/myapp/admin_view_user/#a" class="qa-btn qa-orange">
+                    <i class="fas fa-users-cog"></i>Manage Users
+                </a>
+                <a href="/myapp/admin_add_food/#a" class="qa-btn qa-green">
+                    <i class="fas fa-utensils"></i>Add Food
+                </a>
+                <a href="/myapp/admin_view_food_database/#a" class="qa-btn qa-teal">
+                    <i class="fas fa-database"></i>Food Database
+                </a>
+                <a href="/myapp/admin_view_feedback/#a" class="qa-btn qa-purple">
+                    <i class="fas fa-comment-dots"></i>Feedback
+                </a>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card c-green ani">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                </div>
+                <div class="stat-number">{{ total_users|default:"0" }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card c-blue ani">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
+                </div>
+                <div class="stat-number">{{ active_today|default:"0" }}</div>
+                <div class="stat-label">Joined Today</div>
+            </div>
+            <div class="stat-card c-teal ani">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="fas fa-apple-alt"></i></div>
+                </div>
+                <div class="stat-number">{{ total_food|default:"0" }}</div>
+                <div class="stat-label">Total Food Items</div>
+            </div>
+            <div class="stat-card c-purple ani">
+                <div class="stat-top">
+                    <div class="stat-icon"><i class="fas fa-comment-dots"></i></div>
+                </div>
+                <div class="stat-number">{{ total_feedback|default:"0" }}</div>
+                <div class="stat-label">Total Feedback</div>
+            </div>
+        </div>
+
+        <!-- Recent Users + Recent Food -->
+        <div class="tables-grid">
+
+            <!-- Recent Users -->
+            <div class="tbl-card">
+                <div class="tbl-head">
+                    <div>
+                        <div class="section-title">Recent Users</div>
+                        <div class="section-sub" style="margin-bottom:0">Latest registrations</div>
+                    </div>
+                    <a href="/myapp/admin_view_user/#abc" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="tbl-scroll">
+                    <table class="dtable">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>
+                                    <div class="ucell">
+                                        <div class="uavatar">{{ user.username|slice:":2" }}</div>
+                                        <div>
+                                            <div class="uname">{{ user.username }}</div>
+                                            <div class="uemail">{{ user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="color:var(--text-muted);font-size:12px;">{{ user.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if user.is_active %}
+                                        <span class="badge b-green"><i class="fas fa-circle" style="font-size:6px;"></i>Active</span>
+                                    {% else %}
+                                        <span class="badge b-gray">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="empty-row">
+                                <td colspan="3">
+                                    <div class="empty-icon"><i class="fas fa-users"></i></div>
+                                    No users registered yet
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Food Uploads -->
+            <div class="tbl-card">
+                <div class="tbl-head">
+                    <div>
+                        <div class="section-title">Recent Food Items</div>
+                        <div class="section-sub" style="margin-bottom:0">Latest additions to database</div>
+                    </div>
+                    <a href="/myapp/admin_view_food_database/#abc" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="tbl-scroll">
+                    <table class="dtable">
+                        <thead>
+                            <tr>
+                                <th>Food Name</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for food in recent_food %}
+                            <tr>
+                                <td>
+                                    <div class="ucell">
+                                        {% if food.Photo %}
+                                            <img src="{{ food.Photo }}" alt="{{ food.Food_Name }}"
+                                                 style="width:32px;height:32px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);">
+                                        {% else %}
+                                            <div class="uavatar" style="background:linear-gradient(135deg,var(--teal-1),#00838F)">
+                                                <i class="fas fa-utensils" style="font-size:12px;"></i>
+                                            </div>
+                                        {% endif %}
+                                        <span style="font-weight:600;font-size:13px;">{{ food.Food_Name }}</span>
+                                    </div>
+                                </td>
+                                <td style="color:var(--text-muted);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    {{ food.description|truncatechars:50 }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="empty-row">
+                                <td colspan="2">
+                                    <div class="empty-icon"><i class="fas fa-apple-alt"></i></div>
+                                    No food items added yet
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Django block preserved for child templates -->
+        <div id="a"></div>
+        {% block body %}{% endblock %}
+
+    </main>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ── SIDEBAR ──
+    const sidebar  = document.getElementById('sidebar');
+    const mainWrap = document.getElementById('mainWrap');
+    const overlay  = document.getElementById('sOverlay');
+    let collapsed  = false;
+
+    document.getElementById('sidebarToggle').addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            sidebar.classList.toggle('mob-open');
+            overlay.classList.toggle('active');
+        } else {
+            collapsed = !collapsed;
+            sidebar.classList.toggle('collapsed', collapsed);
+            mainWrap.classList.toggle('expanded', collapsed);
+        }
+    });
+
+    function closeSidebar(){
+        sidebar.classList.remove('mob-open');
+        overlay.classList.remove('active');
+    }
+
+    // ── DARK MODE ──
+    function toggleDark(){
+        document.body.classList.toggle('dark-mode');
+        const on = document.body.classList.contains('dark-mode');
+        document.getElementById('darkIcon').className = on ? 'fas fa-sun' : 'fas fa-moon';
+        document.getElementById('darkLabel').textContent = on ? 'Light' : 'Dark';
+        localStorage.setItem('dm', on ? '1' : '0');
+    }
+    if (localStorage.getItem('dm') === '1'){
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkIcon').className = 'fas fa-sun';
+        document.getElementById('darkLabel').textContent = 'Light';
+    }
+
+    // ── ANCHOR SCROLL FIX ──
+    // Offset all anchor link navigation to account for sticky header
+    function scrollToAnchor(hash) {
+        const target = document.querySelector(hash);
+        if (target) {
+            const headerH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 68;
+            const offset = headerH + 16;
+            const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
+    }
+
+    // Handle in-page anchor clicks
+    document.querySelectorAll('a[href*="#"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            const url = new URL(this.href, window.location.href);
+            // Only handle same-page anchors or anchors after navigation settles
+            if (url.pathname === window.location.pathname && url.hash) {
+                // Let the browser navigate first, then correct scroll
+                setTimeout(() => {
+                    scrollToAnchor(url.hash);
+                }, 50);
+            }
+        });
+    });
+
+    // On page load, if there's a hash in the URL, scroll to it with offset
+    if (window.location.hash) {
+        setTimeout(() => {
+            scrollToAnchor(window.location.hash);
+        }, 100);
+    }
+</script>
+
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodSnap AI | Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════
+       TOKENS — same as dashboard
+    ═══════════════════════════ */
+    :root {
+      --green-1:   #00C896;
+      --green-2:   #00A97A;
+      --green-3:   #006B4F;
+      --orange-1:  #FF7043;
+      --teal-1:    #26C6DA;
+      --purple-1:  #AB47BC;
+      --red-1:     #EF5350;
+      --bg:        #F0F4F3;
+      --card:      #FFFFFF;
+      --border:    rgba(0,200,150,0.14);
+      --border-hi: rgba(0,200,150,0.38);
+      --text-primary:   #0D2318;
+      --text-secondary: #5A7068;
+      --text-muted:     #9AB0A8;
+      --shadow:     0 2px 20px rgba(0,0,0,0.06);
+      --shadow-lg:  0 12px 48px rgba(0,0,0,0.10);
+      --shadow-green: 0 8px 32px rgba(0,200,150,0.20);
+      --radius:    16px;
+      --tr:        all 0.26s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { height:100%; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════
+       BACKGROUND DECORATION
+    ═══════════════════════════ */
+    /* Large soft blobs */
+    .bg-blob {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(90px);
+    }
+    .bg-blob-1 {
+      width: 680px; height: 680px;
+      background: radial-gradient(circle, rgba(0,200,150,.13) 0%, transparent 65%);
+      top: -200px; left: -180px;
+      animation: blob-float 14s ease-in-out infinite alternate;
+    }
+    .bg-blob-2 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(38,198,218,.09) 0%, transparent 65%);
+      bottom: -150px; right: -120px;
+      animation: blob-float 11s ease-in-out infinite alternate-reverse;
+    }
+    .bg-blob-3 {
+      width: 360px; height: 360px;
+      background: radial-gradient(circle, rgba(255,112,67,.07) 0%, transparent 65%);
+      top: 50%; left: 60%;
+      animation: blob-float 17s ease-in-out infinite alternate;
+      animation-delay: -6s;
+    }
+    @keyframes blob-float {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(36px, 28px) scale(1.1); }
+    }
+
+    /* Subtle dot grid */
+    .bg-grid {
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(0,200,150,.18) 1px, transparent 1px);
+      background-size: 36px 36px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: .45;
+    }
+
+    /* Floating food particles */
+    .particles { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+    .pt {
+      position: absolute; bottom: -60px;
+      font-size: 20px; opacity: 0;
+      animation: pt-float linear infinite;
+      filter: blur(0.3px);
+    }
+    .pt:nth-child(1)  { left:5%;   font-size:26px; animation-duration:20s; animation-delay:0s;   }
+    .pt:nth-child(2)  { left:18%;  font-size:16px; animation-duration:24s; animation-delay:-7s;  }
+    .pt:nth-child(3)  { left:32%;  font-size:22px; animation-duration:18s; animation-delay:-12s; }
+    .pt:nth-child(4)  { left:48%;  font-size:14px; animation-duration:26s; animation-delay:-4s;  }
+    .pt:nth-child(5)  { left:62%;  font-size:24px; animation-duration:22s; animation-delay:-9s;  }
+    .pt:nth-child(6)  { left:75%;  font-size:18px; animation-duration:19s; animation-delay:-15s; }
+    .pt:nth-child(7)  { left:88%;  font-size:20px; animation-duration:21s; animation-delay:-3s;  }
+    .pt:nth-child(8)  { left:11%;  font-size:13px; animation-duration:23s; animation-delay:-18s; }
+    .pt:nth-child(9)  { left:55%;  font-size:17px; animation-duration:16s; animation-delay:-10s; }
+    .pt:nth-child(10) { left:40%;  font-size:21px; animation-duration:25s; animation-delay:-5s;  }
+    @keyframes pt-float {
+      0%   { transform: translateY(0)      rotate(0deg);   opacity: 0;    }
+      6%   { opacity: 0.28; }
+      88%  { opacity: 0.18; }
+      100% { transform: translateY(-105vh) rotate(200deg); opacity: 0;    }
+    }
+
+    /* ═══════════════════════════
+       PAGE WRAPPER
+    ═══════════════════════════ */
+    .page {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 1080px;
+      padding: 28px 20px;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      animation: page-in .8s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes page-in {
+      from { opacity:0; transform: translateY(24px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════
+       LEFT PANEL
+    ═══════════════════════════ */
+    .left {
+      flex: 1.15;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-right: none;
+      border-radius: var(--radius) 0 0 var(--radius);
+      padding: 56px 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    /* Top-left glow accent */
+    .left::before {
+      content: '';
+      position: absolute; top: 0; left: 0;
+      width: 240px; height: 240px;
+      background: radial-gradient(ellipse at top left, rgba(0,200,150,.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    /* Bottom-right warm accent */
+    .left::after {
+      content: '';
+      position: absolute; bottom: 0; right: 0;
+      width: 180px; height: 180px;
+      background: radial-gradient(ellipse at bottom right, rgba(255,112,67,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* ── Brand ── */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative; z-index: 1;
+    }
+    .brand-icon {
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, var(--green-1), var(--green-3));
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 21px;
+      box-shadow: 0 4px 16px rgba(0,200,150,.32), 0 0 0 1px rgba(0,200,150,.2);
+      flex-shrink: 0;
+      transition: var(--tr);
+    }
+    .brand-icon:hover { transform: scale(1.06); box-shadow: 0 6px 22px rgba(0,200,150,.44); }
+    .brand-words { display: flex; flex-direction: column; }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 19px;
+      color: var(--text-primary); line-height: 1;
+      letter-spacing: -.3px;
+    }
+    .brand-name span { color: var(--green-1); }
+    .brand-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 9.5px; font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    /* ── Hero block ── */
+    .hero {
+      flex: 1;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 44px 0;
+      position: relative; z-index: 1;
+    }
+
+    .live-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0,200,150,.08);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px 5px 9px;
+      margin-bottom: 24px;
+      width: fit-content;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green-1);
+      box-shadow: 0 0 8px var(--green-1);
+      animation: live-pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes live-pulse {
+      0%,100% { box-shadow: 0 0 6px var(--green-1); transform:scale(1); }
+      50%      { box-shadow: 0 0 16px var(--green-1); transform:scale(1.25); }
+    }
+    .live-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 500;
+      color: var(--green-2);
+      letter-spacing: 1.5px; text-transform: uppercase;
+    }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(34px, 3.8vw, 52px);
+      color: var(--text-primary);
+      line-height: 1.06;
+      letter-spacing: -1.5px;
+      margin-bottom: 18px;
+    }
+    .hero-title .hl {
+      position: relative; display: inline-block;
+      color: var(--green-1);
+    }
+    .hero-title .hl::after {
+      content: '';
+      position: absolute; left: 0; bottom: -3px;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--green-1), transparent);
+      border-radius: 3px;
+    }
+    .hero-title .accent { color: var(--orange-1); }
+
+    .hero-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.75; max-width: 360px;
+    }
+
+    /* ── Stat chips ── */
+    .stats-row { display: flex; gap: 10px; flex-wrap: wrap; position: relative; z-index: 1; }
+
+    .stat-chip {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 20px;
+      display: flex; flex-direction: column; gap: 4px;
+      transition: var(--tr);
+      position: relative; overflow: hidden;
+    }
+    .stat-chip::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: linear-gradient(90deg, var(--green-1), var(--teal-1));
+      opacity: 0; transition: opacity .25s;
+    }
+    .stat-chip:hover { border-color: var(--border-hi); transform: translateY(-2px); box-shadow: var(--shadow-green); }
+    .stat-chip:hover::before { opacity: 1; }
+
+    .stat-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 22px; line-height: 1;
+      color: var(--text-primary); font-weight: 500;
+    }
+    .stat-lbl {
+      font-size: 11px; color: var(--text-muted);
+      font-weight: 500; letter-spacing: .3px;
+    }
+
+    /* ── Vertical divider between panels ── */
+    .vline {
+      width: 1px; flex-shrink: 0;
+      background: linear-gradient(to bottom,
+        transparent 5%,
+        rgba(0,200,150,.18) 30%,
+        rgba(0,200,150,.35) 50%,
+        rgba(0,200,150,.18) 70%,
+        transparent 95%);
+    }
+
+    /* ═══════════════════════════
+       RIGHT PANEL — FORM
+    ═══════════════════════════ */
+    .right {
+      flex: .9;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: none;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 52px 48px;
+      display: flex; flex-direction: column; justify-content: center;
+      position: relative; overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    /* top-right accent */
+    .right::before {
+      content: '';
+      position: absolute; top: 0; right: 0;
+      width: 220px; height: 220px;
+      background: radial-gradient(ellipse at top right, rgba(0,200,150,.09) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    /* bottom-left accent */
+    .right::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0;
+      width: 160px; height: 160px;
+      background: radial-gradient(ellipse at bottom left, rgba(38,198,218,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* ── Form head ── */
+    .f-head { margin-bottom: 34px; position: relative; z-index: 1; }
+
+    .f-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; font-weight: 500;
+      color: var(--green-2);
+      letter-spacing: 3px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 9px;
+      margin-bottom: 12px;
+    }
+    .f-eyebrow::before {
+      content: ''; display: inline-block;
+      width: 18px; height: 1.5px;
+      background: var(--green-1); border-radius: 2px;
+    }
+
+    .f-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px; font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -.7px; line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .f-title span { color: var(--green-1); }
+
+    .f-sub {
+      font-size: 13.5px;
+      color: var(--text-secondary); line-height: 1.65;
+    }
+
+    /* ── Error banner ── */
+    .error-banner {
+      display: none;
+      align-items: center; gap: 10px;
+      padding: 13px 16px;
+      background: rgba(239,83,80,.07);
+      border: 1.5px solid rgba(239,83,80,.28);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 13px; font-weight: 500;
+      color: var(--red-1);
+      position: relative; z-index: 1;
+    }
+    .error-banner.show {
+      display: flex;
+      animation: shake .45s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    .error-banner svg { flex-shrink: 0; }
+    @keyframes shake {
+      0%          { transform: translateX(0); }
+      10%, 90%    { transform: translateX(-4px); }
+      20%, 80%    { transform: translateX(4px); }
+      30%, 50%, 70% { transform: translateX(-5px); }
+      40%, 60%    { transform: translateX(5px); }
+      100%        { transform: translateX(0); }
+    }
+
+    /* ── Fields ── */
+    .form-body { position: relative; z-index: 1; }
+
+    .field { margin-bottom: 20px; }
+
+    .f-label {
+      display: flex; align-items: center; gap: 7px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10.5px; font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 1.8px; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .f-label-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--green-1);
+      box-shadow: 0 0 5px rgba(0,200,150,.5);
+    }
+
+    .f-inp-wrap { position: relative; }
+
+    .f-icon {
+      position: absolute; left: 15px; top: 50%;
+      transform: translateY(-50%);
+      width: 17px; height: 17px;
+      stroke: var(--text-muted);
+      fill: none; stroke-width: 1.7;
+      pointer-events: none;
+      transition: stroke .25s;
+    }
+
+    .f-inp {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      outline: none;
+      transition: var(--tr);
+      caret-color: var(--green-1);
+    }
+    .f-inp::placeholder { color: var(--text-muted); }
+    .f-inp:focus {
+      border-color: var(--green-1);
+      background: #fff;
+      box-shadow: 0 0 0 3.5px rgba(0,200,150,.12), 0 2px 12px rgba(0,0,0,.06);
+    }
+    .f-inp-wrap:focus-within .f-icon { stroke: var(--green-1); }
+
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      padding: 6px; border-radius: 8px;
+      color: var(--text-muted);
+      display: flex; align-items: center;
+      transition: var(--tr);
+    }
+    .pw-toggle:hover { color: var(--green-1); background: rgba(0,200,150,.08); }
+
+    /* Input error state — applied when login fails */
+    .f-inp.error {
+      border-color: rgba(239,83,80,.55) !important;
+      background: rgba(239,83,80,.03) !important;
+      box-shadow: 0 0 0 3.5px rgba(239,83,80,.10) !important;
+    }
+    .f-inp.error:focus {
+      border-color: rgba(239,83,80,.75) !important;
+    }
+
+    /* ── Forgot row ── */
+    .forgot-row {
+      display: flex; justify-content: flex-end;
+      margin: -6px 0 28px;
+    }
+    .forgot-link {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px; color: var(--text-muted);
+      text-decoration: none; letter-spacing: .4px;
+      transition: color .2s; position: relative;
+    }
+    .forgot-link::after {
+      content: ''; position: absolute;
+      left: 0; bottom: -1px; right: 0;
+      height: 1px; background: var(--green-1);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform .25s;
+    }
+    .forgot-link:hover { color: var(--green-1); }
+    .forgot-link:hover::after { transform: scaleX(1); }
+
+    /* ── Submit button ── */
+    .btn-login {
+      width: 100%;
+      padding: 15px 20px;
+      background: linear-gradient(135deg, var(--green-1) 0%, var(--green-2) 100%);
+      border: none; border-radius: 12px;
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px; font-weight: 700;
+      letter-spacing: .3px; cursor: pointer;
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      transition: transform .22s, box-shadow .22s;
+      box-shadow: 0 4px 22px rgba(0,200,150,.3);
+    }
+    .btn-login::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,.18) 0%, transparent 55%);
+      opacity: 0; transition: opacity .25s;
+    }
+    /* shimmer */
+    .btn-login::after {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 55%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+      transition: left .55s ease;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,200,150,.38);
+    }
+    .btn-login:hover::before { opacity: 1; }
+    .btn-login:hover::after  { left: 150%; }
+    .btn-login:active { transform: translateY(0); }
+
+    .btn-text {
+      display: flex; align-items: center; gap: 9px;
+    }
+    .btn-text svg { width: 16px; height: 16px; transition: transform .28s; }
+    .btn-login:hover .btn-text svg { transform: translateX(5px); }
+
+    /* loading */
+    .btn-login.loading { pointer-events:none; opacity:.75; }
+    .btn-login.loading .btn-text { display:none; }
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    .btn-login.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Status bar (same as dashboard header) ── */
+    .status-bar {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 22px; padding: 11px 15px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      position: relative; z-index: 1;
+    }
+    .s-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green-1);
+      box-shadow: 0 0 7px rgba(0,200,150,.6);
+      flex-shrink: 0;
+      animation: s-blink 2.2s ease-in-out infinite;
+    }
+    @keyframes s-blink {
+      0%,100% { opacity:1;  box-shadow: 0 0 7px rgba(0,200,150,.6); }
+      50%      { opacity:.3; box-shadow: 0 0 3px rgba(0,200,150,.3); }
+    }
+    .s-text {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; color: var(--text-muted);
+      flex: 1; letter-spacing: .5px;
+    }
+    .s-text strong { color: var(--green-2); }
+    .s-ver {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; color: var(--text-muted); opacity: .55;
+    }
+
+    /* ── Footer tag ── */
+    .footer-tag {
+      position: fixed; bottom: 16px; left: 50%;
+      transform: translateX(-50%);
+      font-family: 'DM Mono', monospace;
+      font-size: 9.5px; color: var(--text-muted);
+      letter-spacing: 2px; text-transform: uppercase;
+      z-index: 5; opacity: .5; white-space: nowrap;
+    }
+
+    /* ═══════════════════════════
+       RESPONSIVE
+    ═══════════════════════════ */
+    @media (max-width: 820px) {
+      .left  { display: none; }
+      .vline { display: none; }
+      .right {
+        border-left: 1px solid var(--border);
+        border-radius: var(--radius);
+        max-width: 440px; width: 100%;
+        padding: 44px 32px;
+      }
+    }
+    @media (max-width: 480px) {
+      .right { padding: 36px 22px; }
+      .f-title { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background layers -->
+<div class="bg-blob bg-blob-1"></div>
+<div class="bg-blob bg-blob-2"></div>
+<div class="bg-blob bg-blob-3"></div>
+<div class="bg-grid"></div>
+
+<!-- Floating food particles -->
+<div class="particles">
+  <span class="pt">🥗</span>
+  <span class="pt">🍎</span>
+  <span class="pt">🥦</span>
+  <span class="pt">🍊</span>
+  <span class="pt">🌿</span>
+  <span class="pt">🍋</span>
+  <span class="pt">🥑</span>
+  <span class="pt">🫐</span>
+  <span class="pt">🌾</span>
+  <span class="pt">🍇</span>
+</div>
+
+<div class="page">
+
+  <!-- ══════════════════════
+       LEFT — brand + story
+  ══════════════════════ -->
+  <div class="left">
+
+    <!-- Brand mark -->
+    <div class="brand">
+      <div class="brand-icon">🌿</div>
+      <div class="brand-words">
+        <span class="brand-name">Food<span>Snap</span> AI</span>
+        <span class="brand-tag">Admin Console · v2.5</span>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="live-pill">
+        <div class="live-dot"></div>
+        <span class="live-text">System Live</span>
+      </div>
+
+      <h1 class="hero-title">
+        Nutrition<br>
+        <span class="hl">Intelligence</span><br>
+        <span class="accent">Platform</span>
+      </h1>
+
+      <p class="hero-desc">
+        Monitor calorie intake, manage user health profiles,
+        and track AI‑powered diet analytics across your entire
+        user base — all in real time.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- vertical divider -->
+  <div class="vline"></div>
+
+  <!-- ══════════════════════
+       RIGHT — login form
+  ══════════════════════ -->
+  <div class="right">
+
+    <div class="f-head">
+      <div class="f-eyebrow">Secure Access</div>
+      <div class="f-title">Welcome back,<br><span>Admin.</span></div>
+      <div class="f-sub">Sign in to manage your FoodSnap AI platform.</div>
+    </div>
+
+    <!-- Error banner — shown when Django passes messages OR invalid login -->
+    <div class="error-banner {% if messages %}show{% endif %}" id="error-banner">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="13"/>
+        <circle cx="12" cy="16.5" r=".8" fill="currentColor"/>
+      </svg>
+      <span id="error-text">
+        {% if messages %}
+          {% for message in messages %}{{ message }}{% endfor %}
+        {% else %}
+          Invalid credentials. Please try again.
+        {% endif %}
+      </span>
+    </div>
+
+    <form action="/myapp/login_post/" method="post" id="loginForm" class="form-body">
+      {% csrf_token %}
+
+      <!-- USERNAME -->
+      <div class="field">
+        <div class="f-label">
+          <span class="f-label-dot"></span> Username
+        </div>
+        <div class="f-inp-wrap">
+          <svg class="f-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+          <input
+            class="f-inp"
+            type="text"
+            name="username"
+            id="inp-user"
+            placeholder="Enter your username"
+            required
+            autocomplete="username"
+          >
+        </div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="field">
+        <div class="f-label">
+          <span class="f-label-dot"></span> Password
+        </div>
+        <div class="f-inp-wrap">
+          <svg class="f-icon" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input
+            class="f-inp"
+            type="password"
+            name="password"
+            id="inp-pw"
+            placeholder="••••••••••••"
+            required
+            autocomplete="current-password"
+          >
+          <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Show/hide password">
+            <svg id="eye-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12Z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Forgot -->
+      <div class="forgot-row">
+        <a href="forgetpassword.html" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn-login" id="btn-login">
+        <span class="btn-text">
+          Access Dashboard
+          <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+        </span>
+        <div class="spinner"></div>
+      </button>
+
+    </form>
+
+    <!-- Status bar — matches dashboard header style -->
+    <div class="status-bar">
+      <div class="s-dot"></div>
+      <span class="s-text">System <strong>ONLINE</strong> · All services operational</span>
+      <span class="s-ver">v2.5.0</span>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="footer-tag">© 2025 FoodSnap AI — Eat Smart. Stay Healthy.</div>
+
+<script>
+  /* ── Password toggle ── */
+  const pwInput = document.getElementById('inp-pw');
+  const pwBtn   = document.getElementById('pw-toggle');
+  const eyeIcon = document.getElementById('eye-icon');
+  const EYE_OPEN = `<path d="M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/>`;
+  const EYE_SHUT = `<path d="M17.94 17.94A10.9 10.9 0 0 1 12 20C5 20 1 12 1 12a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.6 18.6 0 0 1-2.16 3.19m-6.72-1.07A3 3 0 1 1 9.88 9.88"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+
+  pwBtn.addEventListener('click', () => {
+    const vis = pwInput.type === 'text';
+    pwInput.type = vis ? 'password' : 'text';
+    eyeIcon.innerHTML = vis ? EYE_OPEN : EYE_SHUT;
+  });
+
+  /* ── Clear error state when user starts typing ── */
+  document.querySelectorAll('.f-inp').forEach(inp => {
+    inp.addEventListener('input', () => {
+      inp.classList.remove('error');
+      // Hide banner only if user is correcting
+      const banner = document.getElementById('error-banner');
+      if (banner.classList.contains('show')) {
+        banner.style.opacity = '0.5';
+      }
+    });
+    inp.addEventListener('focus', () => {
+      inp.classList.remove('error');
+    });
+  });
+
+  /* ── Client-side validation before submit ── */
+  const form   = document.getElementById('loginForm');
+  const btn    = document.getElementById('btn-login');
+  const banner = document.getElementById('error-banner');
+  const errTxt = document.getElementById('error-text');
+
+  function showError(msg) {
+    errTxt.textContent = msg;
+    banner.style.opacity = '1';
+    banner.classList.remove('show');
+    // Force reflow to re-trigger shake animation
+    void banner.offsetWidth;
+    banner.classList.add('show');
+    btn.classList.remove('loading');
+    // Highlight inputs as errored
+    document.querySelectorAll('.f-inp').forEach(i => i.classList.add('error'));
+    // Scroll banner into view on mobile
+    banner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  form.addEventListener('submit', (e) => {
+    const username = document.getElementById('inp-user').value.trim();
+    const password = pwInput.value;
+
+    // Basic client-side checks
+    if (!username) {
+      e.preventDefault();
+      showError('Please enter your username.');
+      document.getElementById('inp-user').focus();
+      return;
+    }
+    if (!password) {
+      e.preventDefault();
+      showError('Please enter your password.');
+      pwInput.focus();
+      return;
+    }
+    if (password.length < 4) {
+      e.preventDefault();
+      showError('Password is too short.');
+      pwInput.focus();
+      return;
+    }
+
+    // All good — show loading
+    btn.classList.add('loading');
+  });
+
+  /* ── If Django already rendered .show on the banner (failed login),
+        apply error state to inputs immediately on page load ── */
+  if (banner.classList.contains('show')) {
+    document.querySelectorAll('.f-inp').forEach(i => i.classList.add('error'));
+    // Clear password field on failed login for security
+    pwInput.value = '';
+    pwInput.focus();
+  }
+</script>
+
+</body>
+</html>

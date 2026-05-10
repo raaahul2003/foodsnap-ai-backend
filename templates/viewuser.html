@@ -1,0 +1,679 @@
+{% extends 'index.html' %}
+{% block body %}
+
+<style>
+  /* ── View Users Page ── */
+  .vu-wrap { padding-bottom: 48px; }
+
+  .vu-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-muted); margin-bottom: 6px;
+  }
+  .vu-breadcrumb a { color: var(--green-1); text-decoration: none; }
+
+  .vu-page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;
+  }
+  .vu-page-title span { color: var(--green-1); }
+  .vu-page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+  /* ── Top stat bar ── */
+  .vu-statbar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .vu-stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 14px;
+    transition: var(--tr);
+    animation: fadeUp 0.4s ease both;
+  }
+  .vu-stat:nth-child(2){animation-delay:.07s}
+  .vu-stat:nth-child(3){animation-delay:.14s}
+  .vu-stat:nth-child(4){animation-delay:.21s}
+  .vu-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .vu-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .vu-stat-icon.green  { background: rgba(0,200,150,0.12); color: var(--green-1); }
+  .vu-stat-icon.blue   { background: rgba(66,165,245,0.12); color: #42A5F5; }
+  .vu-stat-icon.orange { background: rgba(255,112,67,0.12); color: var(--orange-1); }
+  .vu-stat-icon.purple { background: rgba(171,71,188,0.12); color: #AB47BC; }
+  .vu-stat-val {
+    font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-primary); line-height: 1;
+  }
+  .vu-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Main table card ── */
+  .vu-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: fadeUp 0.45s ease 0.1s both;
+  }
+
+  .vu-card-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(0,200,150,0.04), transparent);
+  }
+
+  .vu-card-title {
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-primary);
+  }
+  .vu-card-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .vu-toolbar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+
+  /* Search */
+  .vu-search-box {
+    position: relative;
+  }
+  .vu-search-box input {
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 16px 9px 38px;
+    font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; width: 240px;
+    transition: var(--tr);
+  }
+  .vu-search-box input::placeholder { color: var(--text-muted); }
+  .vu-search-box input:focus { border-color: var(--green-1); box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+  .vu-search-box i {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 13px; pointer-events: none;
+  }
+
+  /* Filter pills */
+  .vu-filter-pill {
+    padding: 7px 14px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif;
+    color: var(--text-secondary); cursor: pointer; transition: var(--tr);
+    white-space: nowrap;
+  }
+  .vu-filter-pill:hover,
+  .vu-filter-pill.active {
+    background: rgba(0,200,150,0.1); border-color: var(--green-1); color: var(--green-1);
+  }
+
+  /* ── Table ── */
+  .vu-table-wrap { overflow-x: auto; }
+
+  .vu-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+
+  .vu-table thead th {
+    background: var(--bg); color: var(--text-muted);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 12px 18px; border-bottom: 1px solid var(--border);
+    white-space: nowrap; cursor: pointer; user-select: none;
+    transition: var(--tr);
+  }
+  .vu-table thead th:hover { color: var(--green-1); }
+  .vu-table thead th .sort-icon { margin-left: 5px; opacity: 0.4; font-size: 10px; }
+  .vu-table thead th.sorted .sort-icon { opacity: 1; color: var(--green-1); }
+
+  .vu-table tbody tr {
+    border-bottom: 1px solid var(--border); transition: var(--tr);
+  }
+  .vu-table tbody tr:last-child { border-bottom: none; }
+  .vu-table tbody tr:hover { background: rgba(0,200,150,0.04); }
+
+  .vu-table tbody td { padding: 14px 18px; vertical-align: middle; color: var(--text-primary); }
+
+  /* Index cell */
+  .vu-idx {
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--text-muted); min-width: 36px;
+  }
+
+  /* User cell */
+  .vu-user-cell { display: flex; align-items: center; gap: 12px; }
+  .vu-avatar-wrap { position: relative; flex-shrink: 0; }
+  .vu-avatar {
+    width: 42px; height: 42px; border-radius: 12px; object-fit: cover;
+    border: 2px solid var(--border); display: block;
+  }
+  .vu-avatar-fallback {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800; color: #fff;
+  }
+  .vu-online-dot {
+    position: absolute; bottom: -1px; right: -1px;
+    width: 11px; height: 11px;
+    background: var(--green-1); border-radius: 50%; border: 2px solid var(--card);
+  }
+  .vu-user-name { font-weight: 600; font-size: 14px; color: var(--text-primary); white-space: nowrap; }
+  .vu-user-email { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+  /* Contact cell */
+  .vu-contact-cell .phone { font-weight: 500; font-size: 13px; color: var(--text-primary); }
+  .vu-contact-cell .email { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Address cell */
+  .vu-address { font-size: 12px; color: var(--text-secondary); line-height: 1.6; max-width: 200px; }
+  .vu-address .place { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+
+  /* Gender badge */
+  .vu-gender {
+    padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    font-family: 'Syne', sans-serif; display: inline-flex; align-items: center; gap: 5px;
+  }
+  .vu-gender.male   { background: rgba(66,165,245,0.12); color: #42A5F5; }
+  .vu-gender.female { background: rgba(171,71,188,0.12); color: #AB47BC; }
+  .vu-gender.other  { background: rgba(38,198,218,0.12); color: #26C6DA; }
+
+  /* DOB cell */
+  .vu-dob { font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+  .vu-age { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Empty state */
+  .vu-empty {
+    padding: 64px 24px; text-align: center;
+  }
+  .vu-empty-icon {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: rgba(0,200,150,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--green-1);
+    margin: 0 auto 16px;
+  }
+  .vu-empty h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .vu-empty p { font-size: 13px; color: var(--text-muted); }
+
+  /* Pagination bar */
+  .vu-pagination {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .vu-pagination-info { font-size: 12px; color: var(--text-muted); }
+  .vu-pagination-info strong { color: var(--text-primary); }
+
+  .vu-pages { display: flex; align-items: center; gap: 6px; }
+  .vu-page-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: var(--tr); font-family: 'Syne', sans-serif;
+  }
+  .vu-page-btn:hover { border-color: var(--green-1); color: var(--green-1); background: rgba(0,200,150,0.06); }
+  .vu-page-btn.active { background: var(--green-1); border-color: var(--green-1); color: #fff; }
+  .vu-page-btn:disabled,
+  .vu-page-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+  .vu-per-page {
+    display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted);
+  }
+  .vu-per-page select {
+    background: var(--bg); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 5px 10px; font-size: 12px;
+    font-family: 'DM Sans', sans-serif; color: var(--text-primary);
+    outline: none; cursor: pointer; transition: var(--tr);
+  }
+  .vu-per-page select:focus { border-color: var(--green-1); }
+
+  /* No-result row */
+  .vu-no-results td {
+    padding: 40px!important; text-align: center;
+    color: var(--text-muted); font-size: 13px;
+  }
+
+  @media (max-width: 900px) {
+    .vu-search-box input { width: 180px; }
+    .vu-table tbody td { padding: 12px 12px; }
+  }
+  @media (max-width: 640px) {
+    .vu-toolbar { width: 100%; }
+    .vu-search-box { flex: 1; }
+    .vu-search-box input { width: 100%; }
+  }
+</style>
+
+{% if messages %}
+  <div style="margin-bottom:20px;">
+    {% for message in messages %}
+      <div style="padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;
+        {% if message.tags == 'success' %}background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);color:var(--green-2);
+        {% else %}background:rgba(255,112,67,0.1);border:1px solid rgba(255,112,67,0.3);color:var(--orange-1);{% endif %}
+        margin-bottom:8px;">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="vu-wrap">
+
+  <!-- Page heading -->
+  <div class="vu-breadcrumb">
+    <a href="/myapp/admin_home/#abc">Home</a>
+    <span>/</span><span>Users</span>
+  </div>
+  <h1 class="vu-page-title">Registered <span>Users</span></h1>
+  <p class="vu-page-sub">All users who have signed up on FoodSnap AI.</p>
+
+  <!-- Stat bar -->
+  <div class="vu-statbar">
+    <div class="vu-stat">
+      <div class="vu-stat-icon green"><i class="fas fa-users"></i></div>
+      <div>
+        <div class="vu-stat-val" id="statTotal">{{ data|length }}</div>
+        <div class="vu-stat-lbl">Total Users</div>
+      </div>
+    </div>
+    <div class="vu-stat">
+      <div class="vu-stat-icon blue"><i class="fas fa-mars"></i></div>
+      <div>
+        <div class="vu-stat-val" id="statMale">—</div>
+        <div class="vu-stat-lbl">Male</div>
+      </div>
+    </div>
+    <div class="vu-stat">
+      <div class="vu-stat-icon purple"><i class="fas fa-venus"></i></div>
+      <div>
+        <div class="vu-stat-val" id="statFemale">—</div>
+        <div class="vu-stat-lbl">Female</div>
+      </div>
+    </div>
+    <div class="vu-stat">
+      <div class="vu-stat-icon orange"><i class="fas fa-map-marker-alt"></i></div>
+      <div>
+        <div class="vu-stat-val" id="statStates">—</div>
+        <div class="vu-stat-lbl">States</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table card -->
+  <div class="vu-card">
+    <div class="vu-card-header">
+      <div>
+        <div class="vu-card-title">All Registered Users</div>
+        <div class="vu-card-sub" id="headerCount">Loading…</div>
+      </div>
+      <div class="vu-toolbar">
+        <!-- Search -->
+        <div class="vu-search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="vuSearch" placeholder="Search name, email, place…">
+        </div>
+        <!-- Filters -->
+        <button class="vu-filter-pill active" data-filter="all">All</button>
+        <button class="vu-filter-pill" data-filter="Male">Male</button>
+        <button class="vu-filter-pill" data-filter="Female">Female</button>
+      </div>
+    </div>
+
+    <div class="vu-table-wrap">
+      <table class="vu-table" id="vuTable">
+        <thead>
+          <tr>
+            <th style="width:48px">#</th>
+            <th data-col="name">User <i class="fas fa-sort sort-icon"></i></th>
+            <th data-col="contact">Contact <i class="fas fa-sort sort-icon"></i></th>
+            <th data-col="address">Address <i class="fas fa-sort sort-icon"></i></th>
+            <th data-col="gender">Gender <i class="fas fa-sort sort-icon"></i></th>
+            <th data-col="dob">Date of Birth <i class="fas fa-sort sort-icon"></i></th>
+          </tr>
+        </thead>
+        <tbody id="vuTbody">
+          {% for i in data %}
+          <tr class="vu-data-row"
+              data-name="{{ i.Name|lower }}"
+              data-email="{{ i.Email|lower }}"
+              data-place="{{ i.Place|lower }}"
+              data-gender="{{ i.Gender }}">
+            <td class="vu-idx">{{ forloop.counter }}</td>
+
+            <!-- User -->
+            <td>
+              <div class="vu-user-cell">
+                <div class="vu-avatar-wrap">
+                  {% if i.Photo %}
+                    <img src="{{ i.Photo }}" class="vu-avatar" alt="{{ i.Name }}"
+                         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                    <div class="vu-avatar-fallback" style="display:none;">
+                      {{ i.Name|slice:":1"|upper }}
+                    </div>
+                  {% else %}
+                    <div class="vu-avatar-fallback">{{ i.Name|slice:":1"|upper }}</div>
+                  {% endif %}
+                </div>
+                <div>
+                  <div class="vu-user-name">{{ i.Name }}</div>
+                  <div class="vu-user-email">{{ i.Email }}</div>
+                </div>
+              </div>
+            </td>
+
+            <!-- Contact -->
+            <td>
+              <div class="vu-contact-cell">
+                <div class="phone">
+                  {% if i.Phone %}
+                    <i class="fas fa-phone" style="font-size:11px;color:var(--green-1);margin-right:4px;"></i>{{ i.Phone }}
+                  {% else %}
+                    <span style="color:var(--text-muted)">—</span>
+                  {% endif %}
+                </div>
+                <div class="email">
+                  <i class="fas fa-envelope" style="font-size:10px;color:var(--text-muted);margin-right:4px;"></i>{{ i.Email }}
+                </div>
+              </div>
+            </td>
+
+            <!-- Address -->
+            <td>
+              <div class="vu-address">
+                <div class="place">{{ i.Place|default:"—" }}</div>
+                {% if i.Post %}{{ i.Post }}, {% endif %}
+                {% if i.District %}{{ i.District }}<br>{% endif %}
+                {% if i.State %}{{ i.State }}{% endif %}
+                {% if i.Pin %} — {{ i.Pin }}{% endif %}
+              </div>
+            </td>
+
+            <!-- Gender -->
+            <td>
+              {% if i.Gender %}
+                <span class="vu-gender {% if i.Gender == 'Male' %}male{% elif i.Gender == 'Female' %}female{% else %}other{% endif %}">
+                  <i class="fas {% if i.Gender == 'Male' %}fa-mars{% elif i.Gender == 'Female' %}fa-venus{% else %}fa-genderless{% endif %}"></i>
+                  {{ i.Gender }}
+                </span>
+              {% else %}
+                <span style="color:var(--text-muted);font-size:12px;">—</span>
+              {% endif %}
+            </td>
+
+            <!-- DOB -->
+            <td>
+              <div class="vu-dob">
+                {% if i.Dob %}
+                  <i class="fas fa-calendar-alt" style="font-size:11px;color:var(--green-1);margin-right:5px;"></i>
+                  {{ i.Dob }}
+                  <div class="vu-age" id="age-{{ forloop.counter }}" data-dob="{{ i.Dob }}"></div>
+                {% else %}
+                  <span style="color:var(--text-muted)">—</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <!-- handled by JS empty state -->
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Empty state (shown by JS when no data or no results) -->
+      <div class="vu-empty" id="vuEmpty" style="display:none;">
+        <div class="vu-empty-icon"><i class="fas fa-users"></i></div>
+        <h3 id="vuEmptyTitle">No users found</h3>
+        <p id="vuEmptyDesc">No registered users match your current filter.</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="vu-pagination">
+      <div class="vu-per-page">
+        Show
+        <select id="vuPerPage">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="all">All</option>
+        </select>
+        per page
+      </div>
+      <div class="vu-pagination-info" id="vuPagInfo">Showing — of —</div>
+      <div class="vu-pages" id="vuPages"></div>
+    </div>
+  </div>
+
+</div><!-- /vu-wrap -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  /* ── DATA ROWS ── */
+  const allRows   = Array.from(document.querySelectorAll('.vu-data-row'));
+  const tbody     = document.getElementById('vuTbody');
+  const emptyBox  = document.getElementById('vuEmpty');
+  const pagInfo   = document.getElementById('vuPagInfo');
+  const pagesDiv  = document.getElementById('vuPages');
+  const perPageSel= document.getElementById('vuPerPage');
+
+  let filtered    = [...allRows];
+  let currentPage = 1;
+  let perPage     = 10;
+  let activeFilter= 'all';
+  let searchVal   = '';
+
+  /* ── COMPUTE AGE ── */
+  allRows.forEach(row => {
+    const cells = row.querySelectorAll('[id^="age-"]');
+    row.querySelectorAll('.vu-age[data-dob]').forEach(el => {
+      const dob = el.getAttribute('data-dob');
+      if (!dob) return;
+      try {
+        const d = new Date(dob);
+        if (isNaN(d)) return;
+        const age = Math.floor((Date.now() - d) / 3.15576e10);
+        el.textContent = age > 0 ? age + ' yrs old' : '';
+      } catch(e) {}
+    });
+  });
+
+  /* ── LIVE STATS ── */
+  function computeStats() {
+    let male = 0, female = 0;
+    const states = new Set();
+    allRows.forEach(r => {
+      const g = r.dataset.gender || '';
+      if (g === 'Male')   male++;
+      if (g === 'Female') female++;
+      const addr = r.querySelector('.vu-address');
+      if (addr) {
+        const txt = addr.textContent.trim();
+        // grab state from address
+      }
+    });
+    document.getElementById('statMale').textContent   = male;
+    document.getElementById('statFemale').textContent = female;
+    // Count unique states
+    let stateCount = 0;
+    allRows.forEach(r => {
+      const addrDiv = r.querySelector('.vu-address');
+      if (addrDiv) {
+        const spans = addrDiv.innerHTML;
+        // use data-place as proxy for unique districts
+      }
+    });
+    // Just show total unique places as proxy
+    const places = new Set(allRows.map(r => r.dataset.place).filter(Boolean));
+    document.getElementById('statStates').textContent = places.size || '—';
+  }
+  computeStats();
+
+  /* ── FILTER + SEARCH ── */
+  function applyFilters() {
+    filtered = allRows.filter(r => {
+      const gMatch = activeFilter === 'all' || r.dataset.gender === activeFilter;
+      const q = searchVal.toLowerCase();
+      const sMatch = !q ||
+        r.dataset.name.includes(q) ||
+        r.dataset.email.includes(q) ||
+        r.dataset.place.includes(q);
+      return gMatch && sMatch;
+    });
+    currentPage = 1;
+    render();
+  }
+
+  /* ── RENDER PAGE ── */
+  function render() {
+    // Hide all
+    allRows.forEach(r => r.style.display = 'none');
+
+    if (filtered.length === 0) {
+      emptyBox.style.display = '';
+      document.getElementById('vuEmptyTitle').textContent =
+        searchVal ? 'No results found' : 'No users registered';
+      document.getElementById('vuEmptyDesc').textContent =
+        searchVal ? `No users match "${searchVal}".` : 'Users will appear here once they register.';
+      pagInfo.textContent = 'Showing 0 of 0';
+      pagesDiv.innerHTML  = '';
+      document.getElementById('headerCount').textContent = '0 users';
+      return;
+    }
+
+    emptyBox.style.display = 'none';
+    const total = filtered.length;
+    const limit = perPage === 'all' ? total : perPage;
+    const pages = Math.ceil(total / limit);
+    if (currentPage > pages) currentPage = pages;
+
+    const start = (currentPage - 1) * limit;
+    const end   = Math.min(start + limit, total);
+
+    filtered.forEach((r, idx) => {
+      if (idx >= start && idx < end) {
+        r.style.display = '';
+        // update index number
+        r.querySelector('.vu-idx').textContent = idx + 1;
+      }
+    });
+
+    pagInfo.innerHTML = `Showing <strong>${start + 1}–${end}</strong> of <strong>${total}</strong>`;
+    document.getElementById('headerCount').textContent =
+      `${total} user${total !== 1 ? 's' : ''} ${activeFilter !== 'all' ? '· ' + activeFilter : ''}${searchVal ? ' · "' + searchVal + '"' : ''}`;
+
+    renderPages(pages);
+  }
+
+  /* ── PAGINATION BUTTONS ── */
+  function renderPages(total) {
+    pagesDiv.innerHTML = '';
+    if (total <= 1) return;
+
+    const mkBtn = (label, page, active, disabled) => {
+      const b = document.createElement('button');
+      b.className = 'vu-page-btn' + (active ? ' active' : '') + (disabled ? ' disabled' : '');
+      b.innerHTML = label;
+      if (!disabled && !active) b.onclick = () => { currentPage = page; render(); };
+      return b;
+    };
+
+    pagesDiv.appendChild(mkBtn('<i class="fas fa-chevron-left"></i>', currentPage - 1, false, currentPage === 1));
+
+    const range = [];
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) range.push(i);
+    } else {
+      range.push(1);
+      if (currentPage > 3) range.push('…');
+      for (let i = Math.max(2, currentPage - 1); i <= Math.min(total - 1, currentPage + 1); i++) range.push(i);
+      if (currentPage < total - 2) range.push('…');
+      range.push(total);
+    }
+
+    range.forEach(p => {
+      if (p === '…') {
+        const s = document.createElement('span');
+        s.textContent = '…';
+        s.style.cssText = 'color:var(--text-muted);font-size:13px;padding:0 4px;';
+        pagesDiv.appendChild(s);
+      } else {
+        pagesDiv.appendChild(mkBtn(p, p, p === currentPage, false));
+      }
+    });
+
+    pagesDiv.appendChild(mkBtn('<i class="fas fa-chevron-right"></i>', currentPage + 1, false, currentPage === total));
+  }
+
+  /* ── SEARCH ── */
+  document.getElementById('vuSearch').addEventListener('input', function () {
+    searchVal = this.value.trim();
+    applyFilters();
+  });
+
+  /* ── FILTER PILLS ── */
+  document.querySelectorAll('.vu-filter-pill').forEach(pill => {
+    pill.addEventListener('click', function () {
+      document.querySelectorAll('.vu-filter-pill').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      activeFilter = this.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  /* ── PER PAGE ── */
+  perPageSel.addEventListener('change', function () {
+    perPage = this.value === 'all' ? 'all' : parseInt(this.value);
+    currentPage = 1;
+    render();
+  });
+
+  /* ── SORT ── */
+  document.querySelectorAll('.vu-table thead th[data-col]').forEach(th => {
+    let asc = true;
+    th.addEventListener('click', function () {
+      document.querySelectorAll('.vu-table thead th').forEach(t => t.classList.remove('sorted'));
+      this.classList.add('sorted');
+      const col = this.dataset.col;
+      const icon = this.querySelector('.sort-icon');
+      icon.className = `fas fa-sort-${asc ? 'up' : 'down'} sort-icon`;
+
+      filtered.sort((a, b) => {
+        let va = '', vb = '';
+        if (col === 'name')    { va = a.dataset.name;   vb = b.dataset.name; }
+        if (col === 'contact') { va = a.dataset.email;  vb = b.dataset.email; }
+        if (col === 'address') { va = a.dataset.place;  vb = b.dataset.place; }
+        if (col === 'gender')  { va = a.dataset.gender; vb = b.dataset.gender; }
+        if (col === 'dob') {
+          va = a.querySelector('[data-dob]')?.getAttribute('data-dob') || '';
+          vb = b.querySelector('[data-dob]')?.getAttribute('data-dob') || '';
+        }
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+
+      asc = !asc;
+      currentPage = 1;
+      render();
+    });
+  });
+
+  /* ── INIT ── */
+  render();
+
+})();
+</script>
+{% endblock %}

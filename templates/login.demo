@@ -1,0 +1,957 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodSnap AI | Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      display: flex;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #b5f2c7, #6ecf8f);
+    }
+
+    .container {
+      width: 80%;
+      max-width: 900px;
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      overflow: hidden;
+    }
+
+    .illustration {
+      flex: 1;
+      background: linear-gradient(164deg, rgb(194 220 183), #d9ffdb)
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .illustration img {
+      width: 80%;
+      max-width: 300px;
+    }
+
+    .login-form {
+      flex: 1;
+      padding: 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .login-form h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+
+    .login-form .input-field {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .login-form input:focus {
+      border-color: #4caf50;
+    }
+
+    .login-form a {
+      text-decoration: none;
+      color: #4caf50;
+      font-size: 14px;
+      text-align: right;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .login-form button {
+      width: 100%;
+      background: #4caf50;
+      color: #fff;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .login-form button:hover {
+      background: #43a047;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        width: 95%;
+      }
+      .illustration {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+ <form action="/myapp/login_post/" method="post">
+  {% csrf_token %}
+
+
+ <div class="container">
+    <div class="illustration">
+      <img src="Food.png" alt="FoodSnap Illustration">
+    </div>
+
+    <div class="login-form">
+      <h2>Welcome to <span style="color:#4caf50;">FoodSnap AI</span></h2>
+
+      <div class="input-field">
+        <input type="text" placeholder="Username" required name="username">
+      </div>
+
+      <div class="input-field">
+        <input type="password" placeholder="Password" required name="password"> 
+      </div>
+
+      <a href="#">Forgot Password?</a>
+
+      <button>LOGIN</button>
+
+      <div class="footer">
+        © 2025 FoodSnap AI — Eat Smart. Stay Healthy.
+      </div>
+    </div>
+  </div>
+
+ </form>
+
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FoodSnap AI | Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ─── TOKENS ─────────────────────────────────────────────────── */
+    :root {
+      --bg:        #050D0A;
+      --bg-card:   #0C1A13;
+      --surface:   #0F2018;
+      --border:    #1A3D2A;
+      --neon:      #00FF88;
+      --neon-dim:  #00C46A;
+      --neon-faint:#003D22;
+      --cyan:      #00E5FF;
+      --amber:     #FFD166;
+      --red:       #FF6B6B;
+      --txt:       #F0FFF8;
+      --txt-sec:   #6EE7B7;
+      --txt-muted: #2E6B4A;
+      --mono:      'Space Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    /* ─── BODY / CANVAS ──────────────────────────────────────────── */
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--sans);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ─── ANIMATED GRID BG ───────────────────────────────────────── */
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,136,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,.045) 1px, transparent 1px);
+      background-size: 48px 48px;
+      animation: grid-drift 20s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes grid-drift {
+      0%   { background-position: 0 0; }
+      100% { background-position: 48px 48px; }
+    }
+
+    /* ─── RADIAL GLOW ────────────────────────────────────────────── */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+      animation: orb-breathe 6s ease-in-out infinite alternate;
+    }
+    .glow-orb.g1 {
+      width: 500px; height: 500px;
+      background: rgba(0,255,136,.12);
+      top: -100px; left: -100px;
+    }
+    .glow-orb.g2 {
+      width: 400px; height: 400px;
+      background: rgba(0,229,255,.08);
+      bottom: -80px; right: -80px;
+      animation-delay: -3s;
+    }
+    @keyframes orb-breathe {
+      from { opacity:.6; transform: scale(1); }
+      to   { opacity:1;  transform: scale(1.15); }
+    }
+
+    /* ─── SCAN LINE SWEEP ────────────────────────────────────────── */
+    body::after {
+      content:'';
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(0,255,136,.018) 50%,
+        transparent 100%
+      );
+      background-size: 100% 8px;
+      animation: scanlines 0.12s steps(1) infinite;
+      pointer-events: none;
+      z-index: 999;
+      opacity: .4;
+    }
+    @keyframes scanlines {
+      from { background-position: 0 0; }
+      to   { background-position: 0 8px; }
+    }
+
+    /* ─── WRAPPER ─────────────────────────────────────────────────── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 1040px;
+      padding: 20px;
+      display: flex;
+      gap: 0;
+      animation: wrapper-in .9s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes wrapper-in {
+      from { opacity:0; transform: translateY(32px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ─── LEFT PANEL ──────────────────────────────────────────────── */
+    .left-panel {
+      flex: 1.1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-right: none;
+      border-radius: 24px 0 0 24px;
+      padding: 56px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* neon corner accent */
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 180px; height: 180px;
+      background: radial-gradient(ellipse at top left,
+        rgba(0,255,136,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* vertical neon line */
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      top: 20%; right: 0;
+      width: 1px;
+      height: 60%;
+      background: linear-gradient(to bottom,
+        transparent, var(--neon-dim), transparent);
+      opacity: .5;
+    }
+
+    /* brand */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      animation: item-in .7s .1s cubic-bezier(.22,1,.36,1) both;
+    }
+    .brand-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      background: var(--neon-faint);
+      border: 1px solid rgba(0,255,136,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(0,255,136,.15);
+    }
+    .brand-text { display: flex; flex-direction: column; }
+    .brand-name {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: 20px;
+      color: var(--txt);
+      letter-spacing: -.5px;
+      line-height: 1;
+    }
+    .brand-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--neon);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* hero text */
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 0;
+      animation: item-in .7s .2s cubic-bezier(.22,1,.36,1) both;
+    }
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--neon);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 28px; height: 1px;
+      background: var(--neon);
+    }
+    .hero-title {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: clamp(36px, 4vw, 52px);
+      color: var(--txt);
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, var(--neon), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero-desc {
+      font-size: 14px;
+      color: var(--txt-muted);
+      line-height: 1.7;
+      max-width: 340px;
+    }
+
+    /* stat pills */
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      animation: item-in .7s .3s cubic-bezier(.22,1,.36,1) both;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      display: flex; flex-direction: column;
+      gap: 2px;
+    }
+    .stat-val {
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--neon);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--txt-muted);
+      letter-spacing: .5px;
+    }
+
+    /* ─── RIGHT PANEL (FORM) ──────────────────────────────────────── */
+    .right-panel {
+      flex: .9;
+      background: #0a1710;
+      border: 1px solid var(--border);
+      border-radius: 0 24px 24px 0;
+      padding: 56px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* bottom-right corner glow */
+    .right-panel::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 220px; height: 220px;
+      background: radial-gradient(ellipse at bottom right,
+        rgba(0,229,255,.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .form-eyebrow {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--txt-muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      animation: item-in .7s .15s cubic-bezier(.22,1,.36,1) both;
+    }
+    .form-title {
+      font-family: var(--sans);
+      font-weight: 800;
+      font-size: 28px;
+      color: var(--txt);
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      animation: item-in .7s .2s cubic-bezier(.22,1,.36,1) both;
+    }
+    .form-subtitle {
+      font-size: 13px;
+      color: var(--txt-muted);
+      margin-bottom: 36px;
+      line-height: 1.6;
+      animation: item-in .7s .25s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    /* ── INPUT GROUPS ─────────────────────────────────────────────── */
+    .field {
+      margin-bottom: 20px;
+      animation: item-in .7s .3s cubic-bezier(.22,1,.36,1) both;
+    }
+    .field:nth-child(2) { animation-delay: .35s; }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--txt-sec);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .field-label .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--neon);
+      box-shadow: 0 0 6px var(--neon);
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap .icon {
+      position: absolute;
+      left: 16px; top: 50%;
+      transform: translateY(-50%);
+      width: 18px; height: 18px;
+      color: var(--txt-muted);
+      transition: color .25s;
+      pointer-events: none;
+    }
+    .input-wrap input {
+      width: 100%;
+      padding: 14px 16px 14px 46px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--txt);
+      font-family: var(--mono);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+      caret-color: var(--neon);
+    }
+    .input-wrap input::placeholder { color: var(--txt-muted); }
+    .input-wrap input:focus {
+      border-color: var(--neon);
+      box-shadow: 0 0 0 3px rgba(0,255,136,.1), inset 0 0 20px rgba(0,255,136,.04);
+    }
+    .input-wrap input:focus + .icon { color: var(--neon); }
+    .input-wrap input:focus ~ .scan-line { animation: scan-move 1s linear infinite; }
+    .input-wrap .icon { left: 16px; right: auto; order: -1; }
+
+    /* reorder for icon before input via absolute positioning */
+
+    /* password toggle */
+    .toggle-pw {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      cursor: pointer; padding: 4px;
+      color: var(--txt-muted);
+      transition: color .2s;
+      display: flex; align-items: center;
+    }
+    .toggle-pw:hover { color: var(--neon); }
+
+    /* ── FORGOT LINK ──────────────────────────────────────────────── */
+    .forgot-row {
+      display: flex;
+      justify-content: flex-end;
+      margin: -6px 0 28px;
+      animation: item-in .7s .4s cubic-bezier(.22,1,.36,1) both;
+    }
+    .forgot-link {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--neon-dim);
+      text-decoration: none;
+      letter-spacing: .5px;
+      position: relative;
+      transition: color .2s;
+    }
+    .forgot-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0; right: 0;
+      height: 1px;
+      background: var(--neon);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform .25s;
+    }
+    .forgot-link:hover { color: var(--neon); }
+    .forgot-link:hover::after { transform: scaleX(1); }
+
+    /* ── SUBMIT BUTTON ────────────────────────────────────────────── */
+    .btn-wrap {
+      animation: item-in .7s .45s cubic-bezier(.22,1,.36,1) both;
+    }
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--neon), var(--neon-dim));
+      border: none;
+      border-radius: 12px;
+      color: var(--bg);
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
+      box-shadow: 0 4px 20px rgba(0,255,136,.25);
+    }
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+        rgba(255,255,255,.2) 0%,
+        transparent 60%);
+      opacity: 0;
+      transition: opacity .25s;
+    }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,255,136,.4);
+    }
+    .btn-login:hover::before { opacity: 1; }
+    .btn-login:active { transform: translateY(0); }
+
+    /* shimmer sweep on hover */
+    .btn-login::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg,
+        transparent, rgba(255,255,255,.18), transparent);
+      transition: left .5s;
+    }
+    .btn-login:hover::after { left: 150%; }
+
+    /* loading state */
+    .btn-login.loading {
+      pointer-events: none;
+      opacity: .8;
+    }
+    .btn-login .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(5,13,10,.3);
+      border-top-color: var(--bg);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto;
+    }
+    .btn-login.loading .btn-text { display: none; }
+    .btn-login.loading .spinner   { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── STATUS INDICATOR ────────────────────────────────────────── */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 28px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      animation: item-in .7s .5s cubic-bezier(.22,1,.36,1) both;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--neon);
+      box-shadow: 0 0 8px var(--neon);
+      animation: blink 2s ease-in-out infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity:1; }
+      50%      { opacity:.3; }
+    }
+    .status-text {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--txt-muted);
+      letter-spacing: 1px;
+      flex: 1;
+    }
+    .status-text strong { color: var(--neon); }
+    .status-ver {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--txt-muted);
+      opacity: .6;
+    }
+
+    /* ── ERROR FLASH ─────────────────────────────────────────────── */
+    .error-msg {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: rgba(255,107,107,.07);
+      border: 1px solid rgba(255,107,107,.25);
+      border-radius: 10px;
+      margin-bottom: 18px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--red);
+      animation: shake .4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    .error-msg.show { display: flex; }
+    @keyframes shake {
+      10%,90% { transform: translateX(-2px); }
+      20%,80% { transform: translateX(3px); }
+      30%,50%,70% { transform: translateX(-3px); }
+      40%,60% { transform: translateX(3px); }
+    }
+
+    /* ── STAGGER IN ──────────────────────────────────────────────── */
+    @keyframes item-in {
+      from { opacity:0; transform: translateY(16px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    /* ── CORNER TAG ──────────────────────────────────────────────── */
+    .corner-tag {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--txt-muted);
+      letter-spacing: 1.5px;
+      z-index: 5;
+      opacity: .5;
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────────── */
+    @media (max-width: 760px) {
+      .left-panel  { display: none; }
+      .right-panel {
+        border-radius: 20px;
+        border-left: 1px solid var(--border);
+        padding: 40px 28px;
+      }
+      .wrapper { max-width: 420px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- background layers -->
+<div class="grid-bg"></div>
+<div class="glow-orb g1"></div>
+<div class="glow-orb g2"></div>
+
+<div class="wrapper">
+
+  <!-- ── LEFT PANEL ──────────────────────────────────────────────── -->
+  <div class="left-panel">
+
+    <div class="brand">
+      <div class="brand-icon">🥗</div>
+      <div class="brand-text">
+        <span class="brand-name">FoodSnap AI</span>
+        <span class="brand-sub">Admin Console</span>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-eyebrow">Mission Control</div>
+      <h1 class="hero-title">
+        Nutrition<br>
+        <span>Intelligence</span><br>
+        Platform
+      </h1>
+      <p class="hero-desc">
+        Monitor calorie intake, manage user health profiles, 
+        and track AI-powered diet analytics across your entire user base — in real time.
+      </p>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="stat-users">—</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-snaps">—</div>
+        <div class="stat-label">Food Snaps</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="stat-uptime">99.9%</div>
+        <div class="stat-label">Uptime</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── RIGHT PANEL (FORM) ──────────────────────────────────────── -->
+  <div class="right-panel">
+
+    <div class="form-eyebrow">Secure Access</div>
+    <div class="form-title">Admin Login</div>
+    <div class="form-subtitle">Enter your credentials to access the dashboard.</div>
+
+    <!-- error message (shown by JS if needed) -->
+    <div class="error-msg" id="error-msg">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+           viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".5" fill="currentColor"/></svg>
+      <span id="error-text">Invalid credentials. Try again.</span>
+    </div>
+
+    <form action="/myapp/login_post/" method="post" id="loginForm">
+      {% csrf_token %}
+
+      <!-- USERNAME -->
+      <div class="field">
+        <div class="field-label">
+          <span class="dot"></span> Identifier
+        </div>
+        <div class="input-wrap">
+          <input
+            type="text"
+            name="username"
+            placeholder="admin_username"
+            required
+            autocomplete="username"
+            id="inp-user"
+          >
+          <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.6"
+               viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="field">
+        <div class="field-label">
+          <span class="dot"></span> Passkey
+        </div>
+        <div class="input-wrap" id="pw-wrap">
+          <input
+            type="password"
+            name="password"
+            placeholder="••••••••••••"
+            required
+            autocomplete="current-password"
+            id="inp-pw"
+          >
+          <svg class="icon" fill="none" stroke="currentColor" stroke-width="1.6"
+               viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <button type="button" class="toggle-pw" id="toggle-pw" aria-label="Toggle password">
+            <svg id="eye-icon" width="16" height="16" fill="none" stroke="currentColor"
+                 stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12Z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- FORGOT -->
+      <div class="forgot-row">
+        <a href="#" class="forgot-link">Forgot passkey?</a>
+      </div>
+
+      <!-- SUBMIT -->
+      <div class="btn-wrap">
+        <button type="submit" class="btn-login" id="btn-login">
+          <span class="btn-text">Access Dashboard →</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+
+    </form>
+
+    <!-- SYSTEM STATUS -->
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span class="status-text">
+        System <strong>ONLINE</strong> · All services operational
+      </span>
+      <span class="status-ver">v2.4.1</span>
+    </div>
+
+  </div>
+</div>
+
+<div class="corner-tag">© 2025 FOODSNAP AI — EAT SMART. STAY HEALTHY.</div>
+
+<script>
+  /* ── password toggle ────────────────────────────────────────────── */
+  const pwInput  = document.getElementById('inp-pw');
+  const eyeBtn   = document.getElementById('toggle-pw');
+  const eyeIcon  = document.getElementById('eye-icon');
+
+  const eyeOpen  = `<path d="M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/>`;
+  const eyeClose = `<path d="M17.94 17.94A10.9 10.9 0 0 1 12 20C5 20 1 12 1 12a18.5 18.5 0 0 1 5.06-5.94M9.9 4.24A9.1 9.1 0 0 1 12 4c7 0 11 8 11 8a18.6 18.6 0 0 1-2.16 3.19m-6.72-1.07A3 3 0 1 1 9.88 9.88"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+
+  eyeBtn.addEventListener('click', () => {
+    const showing = pwInput.type === 'text';
+    pwInput.type  = showing ? 'password' : 'text';
+    eyeIcon.innerHTML = showing ? eyeOpen : eyeClose;
+  });
+
+  /* ── form loading state ─────────────────────────────────────────── */
+  const form   = document.getElementById('loginForm');
+  const btn    = document.getElementById('btn-login');
+
+  form.addEventListener('submit', (e) => {
+    // Add loading state immediately — backend handles auth
+    btn.classList.add('loading');
+  });
+
+  /* ── animated counters for stats ───────────────────────────────── */
+  function animCount(el, target, suffix = '', duration = 1800) {
+    const start = performance.now();
+    (function step(now) {
+      const p   = Math.min((now - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 4);
+      el.textContent = Math.round(ease * target).toLocaleString() + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    })(start);
+  }
+
+  // Placeholder counts — replace with real API data if needed
+  setTimeout(() => {
+    animCount(document.getElementById('stat-users'), 2847);
+    animCount(document.getElementById('stat-snaps'), 18450);
+  }, 600);
+
+  /* ── input neon cursor effect ───────────────────────────────────── */
+  document.querySelectorAll('.input-wrap input').forEach(inp => {
+    inp.addEventListener('focus', () => {
+      inp.parentElement.style.setProperty('--glow', '1');
+    });
+    inp.addEventListener('blur', () => {
+      inp.parentElement.style.removeProperty('--glow');
+    });
+  });
+
+  /* ── Django message display ─────────────────────────────────────── */
+  // If Django passes an error via template messages, show the error bar.
+  // Usage in template: {% if messages %}{% for m in messages %}
+  //   <script>showError("{{ m }}");<\/script>{% endfor %}{% endif %}
+  function showError(msg) {
+    const box  = document.getElementById('error-msg');
+    const text = document.getElementById('error-text');
+    text.textContent = msg;
+    box.classList.add('show');
+    // reset button if submit failed
+    btn.classList.remove('loading');
+  }
+</script>
+
+</body>
+</html>

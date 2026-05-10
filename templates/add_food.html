@@ -1,0 +1,660 @@
+{% extends 'index.html' %}
+
+{% block body %}
+
+<style>
+  /* ── Add Food Page Styles ── */
+  .addfood-wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding-bottom: 48px;
+  }
+
+  /* Breadcrumb override for this page */
+  .af-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .af-breadcrumb a { color: var(--green-1); text-decoration: none; }
+
+  .af-page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px; font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .af-page-title span { color: var(--green-1); }
+  .af-page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 28px; }
+
+  /* Form Card */
+  .af-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Card header strip */
+  .af-card-header {
+    padding: 22px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(135deg, rgba(0,200,150,0.06), rgba(0,200,150,0.01));
+  }
+
+  .af-card-icon {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #fff; flex-shrink: 0;
+  }
+
+  .af-card-header-text h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 700;
+    color: var(--text-primary); margin: 0;
+  }
+  .af-card-header-text p {
+    font-size: 12px; color: var(--text-muted); margin: 2px 0 0;
+  }
+
+  /* Form body */
+  .af-form-body { padding: 28px; }
+
+  /* Field groups */
+  .af-field { margin-bottom: 22px; }
+
+  .af-label {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 13px; font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    font-family: 'Syne', sans-serif;
+  }
+  .af-label i {
+    width: 18px; text-align: center;
+    color: var(--green-1); font-size: 13px;
+  }
+  .af-required {
+    font-size: 10px; color: var(--red-1);
+    background: rgba(239,83,80,0.1);
+    padding: 1px 6px; border-radius: 20px;
+    margin-left: 4px; font-weight: 600;
+  }
+
+  .af-input,
+  .af-textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    outline: none;
+    transition: var(--tr);
+    display: block;
+  }
+  .af-input::placeholder,
+  .af-textarea::placeholder { color: var(--text-muted); }
+  .af-input:focus,
+  .af-textarea:focus {
+    border-color: var(--green-1);
+    background: var(--card);
+    box-shadow: 0 0 0 4px rgba(0,200,150,0.1);
+  }
+  .af-input:hover,
+  .af-textarea:hover { border-color: var(--green-2); }
+
+  .af-textarea { resize: vertical; min-height: 120px; }
+
+  /* Character counter */
+  .af-field-meta {
+    display: flex; justify-content: flex-end;
+    font-size: 11px; color: var(--text-muted);
+    margin-top: 5px;
+  }
+
+  /* Upload Zone */
+  .af-upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    background: var(--bg);
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--tr);
+    position: relative;
+    overflow: hidden;
+  }
+  .af-upload-zone:hover,
+  .af-upload-zone.drag-over {
+    border-color: var(--green-1);
+    background: rgba(0,200,150,0.04);
+  }
+  .af-upload-zone input[type="file"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .af-upload-icon {
+    width: 52px; height: 52px;
+    background: rgba(0,200,150,0.1);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: var(--green-1);
+    margin: 0 auto 12px;
+    transition: var(--tr);
+  }
+  .af-upload-zone:hover .af-upload-icon {
+    background: rgba(0,200,150,0.18);
+    transform: scale(1.06);
+  }
+  .af-upload-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 4px;
+  }
+  .af-upload-sub { font-size: 12px; color: var(--text-muted); }
+  .af-upload-sub span {
+    color: var(--green-1); font-weight: 600; text-decoration: underline;
+  }
+  .af-upload-formats {
+    margin-top: 10px;
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+  }
+  .af-format-badge {
+    font-size: 11px; font-weight: 600;
+    background: rgba(0,200,150,0.1);
+    color: var(--green-2);
+    padding: 2px 10px; border-radius: 20px;
+  }
+
+  /* Image preview */
+  .af-preview-wrap {
+    display: none;
+    margin-top: 14px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  .af-preview-wrap.show { display: block; animation: fadeUp 0.3s ease; }
+  .af-preview-wrap img {
+    width: 100%; max-height: 220px;
+    object-fit: cover; display: block;
+  }
+  .af-preview-remove {
+    position: absolute; top: 10px; right: 10px;
+    width: 30px; height: 30px;
+    background: rgba(0,0,0,0.55);
+    border: none; border-radius: 8px;
+    color: #fff; font-size: 13px;
+    cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+    transition: var(--tr);
+  }
+  .af-preview-remove:hover { background: var(--red-1); }
+  .af-preview-name {
+    padding: 8px 12px;
+    background: var(--bg);
+    font-size: 12px; color: var(--text-secondary);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .af-preview-name i { color: var(--green-1); }
+
+  /* Divider */
+  .af-divider {
+    height: 1px; background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* Action row */
+  .af-actions {
+    display: flex; align-items: center;
+    justify-content: flex-end; gap: 12px;
+  }
+
+  .af-btn-cancel {
+    padding: 11px 24px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: var(--bg);
+    color: var(--text-secondary);
+    font-size: 14px; font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer; transition: var(--tr);
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .af-btn-cancel:hover {
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+  }
+
+  .af-btn-submit {
+    padding: 11px 32px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    color: #fff;
+    font-size: 14px; font-weight: 700;
+    font-family: 'Syne', sans-serif;
+    cursor: pointer; transition: var(--tr);
+    display: inline-flex; align-items: center; gap: 10px;
+    box-shadow: 0 4px 16px rgba(0,200,150,0.3);
+    position: relative; overflow: hidden;
+  }
+  .af-btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0,200,150,0.45);
+  }
+  .af-btn-submit:active { transform: translateY(0); }
+
+  /* Ripple effect on submit */
+  .af-btn-submit::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: rgba(255,255,255,0.15);
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .af-btn-submit:hover::after { opacity: 1; }
+
+  /* Tips sidebar card */
+  .af-tips-card {
+    background: linear-gradient(135deg, rgba(0,200,150,0.08), rgba(0,200,150,0.02));
+    border: 1px solid rgba(0,200,150,0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+  .af-tips-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    color: var(--green-2);
+    display: flex; align-items: center; gap: 7px;
+    margin-bottom: 12px;
+  }
+  .af-tip-item {
+    display: flex; align-items: flex-start; gap: 9px;
+    margin-bottom: 9px; font-size: 12px; color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .af-tip-item i { color: var(--green-1); margin-top: 2px; flex-shrink: 0; font-size: 11px; }
+
+  .af-stats-mini {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    animation: fadeUp 0.5s ease 0.2s both;
+  }
+  .af-stat-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .af-stat-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .af-stat-row .lbl { color: var(--text-muted); display: flex; align-items: center; gap: 7px; }
+  .af-stat-row .lbl i { color: var(--green-1); width: 14px; text-align: center; }
+  .af-stat-row .val { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--text-primary); }
+
+  /* Validation feedback */
+  .af-input.is-invalid,
+  .af-textarea.is-invalid { border-color: var(--red-1); box-shadow: 0 0 0 4px rgba(239,83,80,0.1); }
+  .af-input.is-valid,
+  .af-textarea.is-valid { border-color: var(--green-1); }
+  .af-feedback { font-size: 11px; margin-top: 5px; display: none; }
+  .af-feedback.show { display: block; }
+  .af-feedback.error { color: var(--red-1); }
+  .af-feedback.success { color: var(--green-1); }
+</style>
+
+<!-- ── Django messages ── -->
+{% if messages %}
+  <div style="margin-bottom:20px;">
+    {% for message in messages %}
+      <div style="
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex; align-items: center; gap: 10px;
+        {% if message.tags == 'success' %}
+          background: rgba(0,200,150,0.1); border: 1px solid rgba(0,200,150,0.3); color: var(--green-2);
+        {% else %}
+          background: rgba(255,112,67,0.1); border: 1px solid rgba(255,112,67,0.3); color: var(--orange-1);
+        {% endif %}
+        margin-bottom: 8px;
+      ">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="addfood-wrap">
+
+  <!-- Page heading -->
+  <div class="af-breadcrumb">
+    <a href="/myapp/admin_home/#abc">Home</a>
+    <span>/</span>
+    <a href="/myapp/admin_view_food_database/#abc">Food Database</a>
+    <span>/</span>
+    <span>Add Food</span>
+  </div>
+  <h1 class="af-page-title">Add <span>Food Item</span></h1>
+  <p class="af-page-sub">Add a new item to the FoodSnap AI food database.</p>
+
+  <!-- Two-column layout -->
+  <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start;">
+
+    <!-- ── MAIN FORM CARD ── -->
+    <div class="af-card">
+      <div class="af-card-header">
+        <div class="af-card-icon"><i class="fas fa-utensils"></i></div>
+        <div class="af-card-header-text">
+          <h2>Food Item Details</h2>
+          <p>Fill in all required fields to add a new food entry</p>
+        </div>
+      </div>
+
+      <div class="af-form-body">
+        <form action="/myapp/admin_add_food_post/" method="post" enctype="multipart/form-data" id="addFoodForm" novalidate>
+          {% csrf_token %}
+
+          <!-- Food Name -->
+          <div class="af-field">
+            <label class="af-label">
+              <i class="fas fa-tag"></i>
+              Food Name
+              <span class="af-required">Required</span>
+            </label>
+            <input
+              type="text"
+              class="af-input"
+              name="Food Name"
+              id="foodNameInput"
+              placeholder="e.g. Palak Paneer, Chicken Biryani…"
+              required
+              autocomplete="off"
+              maxlength="100"
+            >
+            <div class="af-field-meta">
+              <span id="nameCounter">0 / 100</span>
+            </div>
+            <div class="af-feedback error" id="nameError">
+              <i class="fas fa-exclamation-circle"></i> Food name is required.
+            </div>
+          </div>
+
+          <!-- Photo Upload -->
+          <div class="af-field">
+            <label class="af-label">
+              <i class="fas fa-image"></i>
+              Food Photo
+              <span style="font-size:10px;color:var(--text-muted);font-weight:400;margin-left:4px;">(optional)</span>
+            </label>
+
+            <div class="af-upload-zone" id="uploadZone">
+              <input
+                type="file"
+                name="photo"
+                id="photoInput"
+                accept="image/*"
+              >
+              <div class="af-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+              <div class="af-upload-title">Drop your image here</div>
+              <div class="af-upload-sub">or <span>browse files</span> from your computer</div>
+              <div class="af-upload-formats">
+                <span class="af-format-badge">JPG</span>
+                <span class="af-format-badge">PNG</span>
+                <span class="af-format-badge">WEBP</span>
+                <span class="af-format-badge">GIF</span>
+              </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="af-preview-wrap" id="previewWrap">
+              <button type="button" class="af-preview-remove" id="removePhoto" title="Remove photo">
+                <i class="fas fa-times"></i>
+              </button>
+              <img id="previewImg" src="" alt="Preview">
+              <div class="af-preview-name">
+                <i class="fas fa-file-image"></i>
+                <span id="previewFileName">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="af-field">
+            <label class="af-label">
+              <i class="fas fa-align-left"></i>
+              Description
+              <span class="af-required">Required</span>
+            </label>
+            <textarea
+              class="af-textarea"
+              name="Description"
+              id="descInput"
+              placeholder="Describe the food item — ingredients, nutritional highlights, cuisine type…"
+              required
+              maxlength="600"
+            ></textarea>
+            <div class="af-field-meta">
+              <span id="descCounter">0 / 600</span>
+            </div>
+            <div class="af-feedback error" id="descError">
+              <i class="fas fa-exclamation-circle"></i> Description is required.
+            </div>
+          </div>
+
+          <div class="af-divider"></div>
+
+          <!-- Actions -->
+          <div class="af-actions">
+            <a href="/myapp/admin_view_food_database/#abc" class="af-btn-cancel">
+              <i class="fas fa-arrow-left"></i> Cancel
+            </a>
+            <button type="submit" class="af-btn-submit" id="submitBtn">
+              <i class="fas fa-plus-circle"></i>
+              Add Food Item
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ── SIDEBAR ── -->
+    <div>
+      <!-- Tips -->
+      <div class="af-tips-card">
+        <div class="af-tips-title">
+          <i class="fas fa-lightbulb"></i> Tips for Good Entries
+        </div>
+        <div class="af-tip-item">
+          <i class="fas fa-check"></i>
+          Use the common name people search for (e.g. "Masala Dosa" not "Dosa").
+        </div>
+        <div class="af-tip-item">
+          <i class="fas fa-check"></i>
+          Upload a clear, well-lit photo — it improves AI scan accuracy.
+        </div>
+        <div class="af-tip-item">
+          <i class="fas fa-check"></i>
+          Include key ingredients and cuisine type in the description.
+        </div>
+        <div class="af-tip-item">
+          <i class="fas fa-check"></i>
+          Mention if the dish is veg, non-veg, or vegan.
+        </div>
+        <div class="af-tip-item">
+          <i class="fas fa-check"></i>
+          Avoid duplicate entries — check the food database first.
+        </div>
+      </div>
+
+      <!-- Mini stats -->
+      <div class="af-stats-mini">
+        <div class="section-title" style="margin-bottom:12px;">Database Stats</div>
+        <div class="af-stat-row">
+          <span class="lbl"><i class="fas fa-apple-alt"></i> Total Items</span>
+          <span class="val">{{ total_food|default:"—" }}</span>
+        </div>
+        <div class="af-stat-row">
+          <span class="lbl"><i class="fas fa-users"></i> Total Users</span>
+          <span class="val">{{ total_users|default:"—" }}</span>
+        </div>
+        <div class="af-stat-row">
+          <span class="lbl"><i class="fas fa-clipboard-list"></i> Complaints</span>
+          <span class="val">{{ total_complaints|default:"—" }}</span>
+        </div>
+        <div style="margin-top:14px;">
+          <a href="/myapp/admin_view_food_database/#abc" style="
+            display:flex;align-items:center;justify-content:center;gap:8px;
+            padding:10px;border-radius:10px;
+            border:1.5px solid var(--border);
+            background:var(--bg);
+            font-size:13px;font-weight:600;font-family:'Syne',sans-serif;
+            color:var(--text-secondary);text-decoration:none;
+            transition:var(--tr);
+          " onmouseover="this.style.borderColor='var(--green-1)';this.style.color='var(--green-1)'"
+             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'">
+            <i class="fas fa-database"></i> View Food Database
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+</div><!-- /addfood-wrap -->
+
+<script>
+  // ── CHARACTER COUNTERS ──
+  const nameInput   = document.getElementById('foodNameInput');
+  const descInput   = document.getElementById('descInput');
+  const nameCounter = document.getElementById('nameCounter');
+  const descCounter = document.getElementById('descCounter');
+
+  nameInput.addEventListener('input', () => {
+    const l = nameInput.value.length;
+    nameCounter.textContent = l + ' / 100';
+    nameCounter.style.color = l > 80 ? 'var(--orange-1)' : 'var(--text-muted)';
+  });
+
+  descInput.addEventListener('input', () => {
+    const l = descInput.value.length;
+    descCounter.textContent = l + ' / 600';
+    descCounter.style.color = l > 500 ? 'var(--orange-1)' : 'var(--text-muted)';
+  });
+
+  // ── IMAGE UPLOAD PREVIEW ──
+  const photoInput   = document.getElementById('photoInput');
+  const previewWrap  = document.getElementById('previewWrap');
+  const previewImg   = document.getElementById('previewImg');
+  const previewName  = document.getElementById('previewFileName');
+  const removeBtn    = document.getElementById('removePhoto');
+  const uploadZone   = document.getElementById('uploadZone');
+
+  photoInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      previewName.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      previewWrap.classList.add('show');
+      uploadZone.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  removeBtn.addEventListener('click', () => {
+    photoInput.value = '';
+    previewWrap.classList.remove('show');
+    uploadZone.style.display = '';
+  });
+
+  // Drag & drop
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      photoInput.files = dt.files;
+      photoInput.dispatchEvent(new Event('change'));
+    }
+  });
+
+  // ── FORM VALIDATION ──
+  document.getElementById('addFoodForm').addEventListener('submit', function (e) {
+    let valid = true;
+
+    // Name validation
+    const nameVal = nameInput.value.trim();
+    const nameErr = document.getElementById('nameError');
+    if (!nameVal) {
+      nameInput.classList.add('is-invalid');
+      nameErr.classList.add('show');
+      valid = false;
+    } else {
+      nameInput.classList.remove('is-invalid');
+      nameInput.classList.add('is-valid');
+      nameErr.classList.remove('show');
+    }
+
+    // Description validation
+    const descVal = descInput.value.trim();
+    const descErr = document.getElementById('descError');
+    if (!descVal) {
+      descInput.classList.add('is-invalid');
+      descErr.classList.add('show');
+      valid = false;
+    } else {
+      descInput.classList.remove('is-invalid');
+      descInput.classList.add('is-valid');
+      descErr.classList.remove('show');
+    }
+
+    if (!valid) { e.preventDefault(); return; }
+
+    // Loading state on submit button
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding…';
+    btn.style.opacity = '0.8';
+    btn.disabled = true;
+  });
+
+  // ── RESPONSIVE GRID ──
+  function checkWidth() {
+    const grid = document.querySelector('.addfood-wrap > div[style*="grid"]');
+    if (!grid) return;
+    if (window.innerWidth < 900) {
+      grid.style.gridTemplateColumns = '1fr';
+    } else {
+      grid.style.gridTemplateColumns = '1fr 260px';
+    }
+  }
+  checkWidth();
+  window.addEventListener('resize', checkWidth);
+</script>
+
+{% endblock %}

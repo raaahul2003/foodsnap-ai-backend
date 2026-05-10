@@ -1,0 +1,30 @@
+names:
+- Bhatura
+- BhindiMasala
+- Biryani
+- Chole
+- ShahiPaneer
+- chicken
+- dal
+- dhokla
+- gulab_jamun
+- idli
+- jalebi
+- modak
+- mvada
+- palak_paneer
+- paneer
+- poha
+- rice
+- roti
+- samosa
+nc: 19
+roboflow:
+  license: CC BY 4.0
+  project: indian-food-detection-kzw9g-xsiwl
+  url: https://universe.roboflow.com/dfsfsd/indian-food-detection-kzw9g-xsiwl/dataset/1
+  version: 1
+  workspace: dfsfsd
+test: ../test/images
+train: ../train/images
+val: ../valid/images

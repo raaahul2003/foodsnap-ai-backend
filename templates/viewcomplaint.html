@@ -1,0 +1,868 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Complaint</title>
+   Bootstrap CSS 
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+   DataTables CSS 
+  <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+</head>
+<body> -->
+
+  {% extends 'index.html'%}
+  {% block body %}
+
+    <div class="container mt-5">
+    <h3 class="mb-4">View Complaints</h3>
+
+    <!-- Date Filter Inputs -->
+    <div class="row mb-3">
+      <div class="col-md-4">
+        <label for="fromDate" class="form-label">From Date</label>
+        <input type="date" id="fromDate" class="form-control">
+      </div>
+      <div class="col-md-4">
+        <label for="toDate" class="form-label">To Date</label>
+        <input type="date" id="toDate" class="form-control">
+      </div>
+    </div>
+
+    <!-- Complaints Table -->
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover" id="complaintTable">
+        <thead class="table-light">
+          <tr>
+            <th>Sl. No.</th>
+            <th>Date</th>
+            <th>username</th>
+            <th>Complaint</th>
+            <th>Replay</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Sample Data Rows -->
+           {% for i in data %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{i.Date}}</td>
+            <td>{{i.USERS.Name}}</td>
+            <td>{{i.Complaint}}</td>
+            <td>
+              {% if i.Status == 'pending' %}
+              <a href="/myapp/admin_send_reply/#abc" class="btn btn-sm btn-primary">Reply</a>
+              {% else %}
+              {{i.Status}}
+              {% endif %}
+              </td>
+          </tr>
+          {% endfor %}
+          <!-- Add more rows as needed -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% block scripts %}
+
+    <script>
+    // Extend DataTables with custom date filtering
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+      const min = document.getElementById('fromDate').value;
+      const max = document.getElementById('toDate').value;
+      const dateStr = data[1]; // Date is column index 1
+      const date = new Date(dateStr);
+
+      const minDate = min ? new Date(min) : null;
+      const maxDate = max ? new Date(max) : null;
+
+      if ((!minDate || date >= minDate) && (!maxDate || date <= maxDate)) {
+        return true;
+      }
+      return false;
+    });
+
+    // Initialize DataTable and bind filter events
+    $(document).ready(function () {
+      const table = $('#complaintTable').DataTable({
+        pageLength: 5
+      });
+
+      $('#fromDate, #toDate').on('change', function () {
+        table.draw();
+      });
+    });
+  </script> 
+
+  {% endblock %}
+  {% endblock %}
+  <!-- Scripts -->
+  <!-- <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#registrationTable').DataTable();
+    });
+  </script>
+</body>
+</html> -->
+{% extends 'index.html' %}
+{% block body %}
+
+<style>
+  .vc-wrap { padding-bottom: 48px; }
+
+  .vc-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-muted); margin-bottom: 6px;
+  }
+  .vc-breadcrumb a { color: var(--green-1); text-decoration: none; }
+
+  .vc-page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;
+  }
+  .vc-page-title span { color: var(--orange-1); }
+  .vc-page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Stat bar ── */
+  .vc-statbar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .vc-stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px;
+    transition: var(--tr); animation: fadeUp 0.4s ease both;
+  }
+  .vc-stat:nth-child(2){animation-delay:.07s}
+  .vc-stat:nth-child(3){animation-delay:.14s}
+  .vc-stat:nth-child(4){animation-delay:.21s}
+  .vc-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .vc-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .vc-stat-icon.orange { background: rgba(255,112,67,0.12); color: var(--orange-1); }
+  .vc-stat-icon.red    { background: rgba(239,83,80,0.12);  color: var(--red-1); }
+  .vc-stat-icon.green  { background: rgba(0,200,150,0.12);  color: var(--green-1); }
+  .vc-stat-icon.blue   { background: rgba(66,165,245,0.12); color: #42A5F5; }
+  .vc-stat-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+  .vc-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* ── Main card ── */
+  .vc-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    overflow: hidden; animation: fadeUp 0.45s ease 0.1s both;
+  }
+
+  .vc-card-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(255,112,67,0.04), transparent);
+  }
+
+  .vc-card-header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+
+  .vc-card-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .vc-card-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Toolbar */
+  .vc-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* Search */
+  .vc-search { position: relative; }
+  .vc-search input {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 9px 16px 9px 38px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; width: 220px; transition: var(--tr);
+  }
+  .vc-search input::placeholder { color: var(--text-muted); }
+  .vc-search input:focus { border-color: var(--orange-1); box-shadow: 0 0 0 3px rgba(255,112,67,0.1); }
+  .vc-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+
+  /* Status filter pills */
+  .vc-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .vc-pill {
+    padding: 6px 14px; border-radius: 20px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: 12px; font-weight: 600; font-family: 'Syne', sans-serif;
+    color: var(--text-secondary); cursor: pointer; transition: var(--tr);
+    white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .vc-pill:hover { border-color: var(--orange-1); color: var(--orange-1); }
+  .vc-pill.active-all     { background: rgba(66,165,245,0.1);  border-color: #42A5F5;       color: #42A5F5; }
+  .vc-pill.active-pending { background: rgba(255,112,67,0.1);  border-color: var(--orange-1); color: var(--orange-1); }
+  .vc-pill.active-replied { background: rgba(0,200,150,0.1);   border-color: var(--green-1);  color: var(--green-1); }
+  .vc-pill .pill-count {
+    font-size: 10px; font-weight: 800;
+    background: currentColor; color: var(--card);
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.85;
+  }
+
+  /* Date filter */
+  .vc-filter-row {
+    display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+  }
+  .vc-date-group { display: flex; flex-direction: column; gap: 5px; }
+  .vc-date-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--text-muted); display: flex; align-items: center; gap: 5px;
+  }
+  .vc-date-input {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 9px 14px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; transition: var(--tr); cursor: pointer;
+  }
+  .vc-date-input:focus { border-color: var(--orange-1); box-shadow: 0 0 0 3px rgba(255,112,67,0.1); }
+
+  .vc-filter-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, var(--orange-1), var(--orange-2));
+    color: #fff; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+    cursor: pointer; transition: var(--tr); box-shadow: 0 4px 14px rgba(255,112,67,0.3);
+    white-space: nowrap;
+  }
+  .vc-filter-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,112,67,0.4); }
+
+  .vc-clear-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 16px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    color: var(--text-secondary); font-size: 13px; font-weight: 600;
+    font-family: 'Syne', sans-serif; cursor: pointer; transition: var(--tr); white-space: nowrap;
+  }
+  .vc-clear-btn:hover { border-color: var(--red-1); color: var(--red-1); background: rgba(239,83,80,0.05); }
+
+  /* Active filter badge */
+  .vc-active-filter {
+    display: none; align-items: center; gap: 8px; margin-top: 10px;
+    padding: 8px 14px; border-radius: 20px;
+    background: rgba(255,112,67,0.08); border: 1px solid rgba(255,112,67,0.2);
+    font-size: 12px; font-weight: 600; color: var(--orange-1);
+  }
+  .vc-active-filter.show { display: inline-flex; }
+  .vc-active-filter button { background: none; border: none; color: var(--orange-1); cursor: pointer; font-size: 13px; padding: 0 0 0 4px; }
+
+  /* ── TABLE ── */
+  .vc-table-wrap { overflow-x: auto; }
+  .vc-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .vc-table thead th {
+    background: var(--bg); color: var(--text-muted);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 12px 18px; border-bottom: 1px solid var(--border); white-space: nowrap;
+    cursor: pointer; user-select: none; transition: var(--tr);
+  }
+  .vc-table thead th:hover { color: var(--orange-1); }
+  .sort-icon { margin-left: 5px; opacity: 0.4; font-size: 10px; }
+  .sorted .sort-icon { opacity: 1; color: var(--orange-1); }
+
+  .vc-table tbody tr { border-bottom: 1px solid var(--border); transition: var(--tr); }
+  .vc-table tbody tr:last-child { border-bottom: none; }
+  .vc-table tbody tr:hover { background: rgba(255,112,67,0.03); }
+  .vc-table tbody td { padding: 15px 18px; vertical-align: middle; }
+
+  /* Priority stripe on left */
+  .vc-table tbody tr.priority-high   { border-left: 3px solid var(--red-1); }
+  .vc-table tbody tr.priority-medium { border-left: 3px solid var(--orange-1); }
+  .vc-table tbody tr.priority-low    { border-left: 3px solid #42A5F5; }
+
+  .vc-idx { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-muted); width: 48px; }
+
+  /* Date cell */
+  .vc-date-main { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+  .vc-date-rel  { font-size: 11px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; }
+
+  /* User cell */
+  .vc-user-cell { display: flex; align-items: center; gap: 10px; }
+  .vc-avatar {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--orange-1), var(--orange-2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800; color: #fff;
+  }
+  .vc-user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+  /* Complaint cell */
+  .vc-complaint-cell { font-size: 13px; color: var(--text-secondary); line-height: 1.6; max-width: 400px; }
+  .vc-complaint-short { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .vc-expand-btn {
+    background: none; border: none; color: var(--orange-1); font-size: 11px;
+    font-weight: 700; cursor: pointer; padding: 2px 0; margin-top: 4px;
+    display: inline-flex; align-items: center; gap: 4px; transition: var(--tr);
+    font-family: 'Syne', sans-serif;
+  }
+  .vc-expand-btn:hover { color: var(--orange-2); }
+
+  /* Status badges */
+  .vc-badge {
+    padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    font-family: 'Syne', sans-serif; display: inline-flex; align-items: center; gap: 5px;
+    white-space: nowrap;
+  }
+  .vc-badge.pending { background: rgba(255,112,67,0.1); border: 1px solid rgba(255,112,67,0.25); color: var(--orange-1); }
+  .vc-badge.replied { background: rgba(0,200,150,0.1);  border: 1px solid rgba(0,200,150,0.25);  color: var(--green-1); }
+
+  /* Reply button */
+  .vc-reply-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--orange-1), var(--orange-2));
+    color: #fff; font-size: 12px; font-weight: 700;
+    font-family: 'Syne', sans-serif; text-decoration: none;
+    transition: var(--tr); border: none;
+    box-shadow: 0 3px 10px rgba(255,112,67,0.3);
+  }
+  .vc-reply-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(255,112,67,0.45); color: #fff; }
+
+  /* Urgent ribbon */
+  .vc-urgent-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; font-family: 'Syne', sans-serif;
+    background: rgba(239,83,80,0.1); color: var(--red-1);
+    padding: 2px 8px; border-radius: 20px; margin-top: 4px;
+    border: 1px solid rgba(239,83,80,0.2);
+  }
+
+  /* ── Empty state ── */
+  .vc-empty { padding: 64px 24px; text-align: center; }
+  .vc-empty-icon {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: rgba(255,112,67,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--orange-1); margin: 0 auto 16px;
+  }
+  .vc-empty h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .vc-empty p  { font-size: 13px; color: var(--text-muted); }
+
+  /* ── Pagination ── */
+  .vc-pagination {
+    padding: 16px 24px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .vc-pag-info { font-size: 12px; color: var(--text-muted); }
+  .vc-pag-info strong { color: var(--text-primary); }
+  .vc-pages { display: flex; align-items: center; gap: 6px; }
+  .vc-page-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: var(--tr); font-family: 'Syne', sans-serif;
+  }
+  .vc-page-btn:hover { border-color: var(--orange-1); color: var(--orange-1); background: rgba(255,112,67,0.06); }
+  .vc-page-btn.active { background: var(--orange-1); border-color: var(--orange-1); color: #fff; }
+  .vc-page-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+  .vc-per-page { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .vc-per-page select {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 5px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; cursor: pointer; transition: var(--tr);
+  }
+  .vc-per-page select:focus { border-color: var(--orange-1); }
+
+  @media(max-width:768px){
+    .vc-search input { width: 180px; }
+    .vc-filter-row { flex-direction: column; align-items: stretch; }
+    .vc-date-group, .vc-date-input { width: 100%; }
+  }
+  @media(max-width:480px){
+    .vc-toolbar { width: 100%; }
+    .vc-search { flex: 1; }
+    .vc-search input { width: 100%; }
+  }
+</style>
+
+{% if messages %}
+  <div style="margin-bottom:20px;">
+    {% for message in messages %}
+      <div style="padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:8px;
+        {% if message.tags == 'success' %}background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);color:var(--green-2);
+        {% else %}background:rgba(255,112,67,0.1);border:1px solid rgba(255,112,67,0.3);color:var(--orange-1);{% endif %}">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<div class="vc-wrap">
+
+  <!-- Page heading -->
+  <div class="vc-breadcrumb">
+    <a href="/myapp/admin_home/#abc">Home</a>
+    <span>/</span><span>Complaints</span>
+  </div>
+  <h1 class="vc-page-title">User <span>Complaints</span></h1>
+  <p class="vc-page-sub">Track and respond to all complaints submitted by FoodSnap AI users.</p>
+
+  <!-- Stat bar -->
+  <div class="vc-statbar">
+    <div class="vc-stat">
+      <div class="vc-stat-icon orange"><i class="fas fa-exclamation-circle"></i></div>
+      <div>
+        <div class="vc-stat-val">{{ data|length }}</div>
+        <div class="vc-stat-lbl">Total Complaints</div>
+      </div>
+    </div>
+    <div class="vc-stat">
+      <div class="vc-stat-icon red"><i class="fas fa-clock"></i></div>
+      <div>
+        <div class="vc-stat-val" id="statPending">—</div>
+        <div class="vc-stat-lbl">Pending</div>
+      </div>
+    </div>
+    <div class="vc-stat">
+      <div class="vc-stat-icon green"><i class="fas fa-check-circle"></i></div>
+      <div>
+        <div class="vc-stat-val" id="statReplied">—</div>
+        <div class="vc-stat-lbl">Replied</div>
+      </div>
+    </div>
+    <div class="vc-stat">
+      <div class="vc-stat-icon blue"><i class="fas fa-filter"></i></div>
+      <div>
+        <div class="vc-stat-val" id="statShowing">{{ data|length }}</div>
+        <div class="vc-stat-lbl">Showing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main card -->
+  <div class="vc-card">
+    <div class="vc-card-header">
+
+      <!-- Top row -->
+      <div class="vc-card-header-top">
+        <div>
+          <div class="vc-card-title">All Complaints</div>
+          <div class="vc-card-sub" id="vcHeaderCount">Loading…</div>
+        </div>
+        <div class="vc-toolbar">
+          <div class="vc-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="vcSearch" placeholder="Search user or complaint…">
+          </div>
+        </div>
+      </div>
+
+      <!-- Status filter pills -->
+      <div class="vc-pills" style="margin-bottom:16px;">
+        <button class="vc-pill active-all" data-filter="all">
+          <i class="fas fa-list"></i> All
+          <span class="pill-count" id="countAll">0</span>
+        </button>
+        <button class="vc-pill" data-filter="pending">
+          <i class="fas fa-clock"></i> Pending
+          <span class="pill-count" id="countPending">0</span>
+        </button>
+        <button class="vc-pill" data-filter="replied">
+          <i class="fas fa-check"></i> Replied
+          <span class="pill-count" id="countReplied">0</span>
+        </button>
+      </div>
+
+      <!-- Date filter row -->
+      <div class="vc-filter-row">
+        <div class="vc-date-group">
+          <label class="vc-date-label"><i class="fas fa-calendar-alt"></i> From Date</label>
+          <input type="date" id="fromDate" class="vc-date-input">
+        </div>
+        <div class="vc-date-group">
+          <label class="vc-date-label"><i class="fas fa-calendar-alt"></i> To Date</label>
+          <input type="date" id="toDate" class="vc-date-input">
+        </div>
+        <button class="vc-filter-btn" onclick="applyDateFilter()">
+          <i class="fas fa-filter"></i> Apply Filter
+        </button>
+        <button class="vc-clear-btn" onclick="clearFilter()">
+          <i class="fas fa-times"></i> Clear
+        </button>
+      </div>
+
+      <!-- Active filter badge -->
+      <div class="vc-active-filter" id="activeFilterBadge">
+        <i class="fas fa-calendar-check"></i>
+        <span id="activeFilterText">—</span>
+        <button onclick="clearFilter()"><i class="fas fa-times"></i></button>
+      </div>
+
+    </div><!-- /vc-card-header -->
+
+    <!-- TABLE -->
+    <div class="vc-table-wrap">
+      <table class="vc-table">
+        <thead>
+          <tr>
+            <th style="width:48px">#</th>
+            <th data-col="date">Date <i class="fas fa-sort sort-icon"></i></th>
+            <th data-col="user">User <i class="fas fa-sort sort-icon"></i></th>
+            <th data-col="complaint">Complaint <i class="fas fa-sort sort-icon"></i></th>
+            <th data-col="status" style="width:140px; text-align:center;">Status / Reply</th>
+          </tr>
+        </thead>
+        <tbody id="vcTbody">
+          {% for i in data %}
+          <tr class="vc-data-row"
+              data-date="{{ i.Date }}"
+              data-date-raw="{{ i.Date }}"
+              data-user="{{ i.USERS.Name|lower|default:'' }}"
+              data-complaint="{{ i.Complaint|lower|default:'' }}"
+              data-status="{% if i.Status == 'pending' %}pending{% else %}replied{% endif %}">
+
+            <td class="vc-idx">{{ forloop.counter }}</td>
+
+            <!-- Date -->
+            <td>
+              <div class="vc-date-main">{{ i.Date }}</div>
+              <div class="vc-date-rel" data-date="{{ i.Date }}"></div>
+            </td>
+
+            <!-- User -->
+            <td>
+              <div class="vc-user-cell">
+                <div class="vc-avatar">{{ i.USERS.Name|slice:":1"|upper|default:"?" }}</div>
+                <div class="vc-user-name">{{ i.USERS.Name|default:"Unknown" }}</div>
+              </div>
+            </td>
+
+            <!-- Complaint -->
+            <td>
+              <div class="vc-complaint-cell">
+                <div class="vc-complaint-short" id="cText{{ forloop.counter }}">{{ i.Complaint }}</div>
+                {% if i.Complaint|length > 100 %}
+                <button class="vc-expand-btn" onclick="toggleExpand('cText{{ forloop.counter }}', this)">
+                  <i class="fas fa-chevron-down"></i> Show more
+                </button>
+                {% endif %}
+              </div>
+            </td>
+
+            <!-- Status / Reply -->
+            <td style="text-align:center;">
+              {% if i.Status == 'pending' %}
+                <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                  <span class="vc-badge pending"><i class="fas fa-clock"></i> Pending</span>
+                  <a href="/myapp/admin_send_reply/#abc" class="vc-reply-btn">
+                    <i class="fas fa-reply"></i> Reply
+                  </a>
+                </div>
+              {% else %}
+                <span class="vc-badge replied"><i class="fas fa-check-circle"></i> {{ i.Status }}</span>
+              {% endif %}
+            </td>
+
+          </tr>
+          {% empty %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty state -->
+    <div class="vc-empty" id="vcEmpty" style="display:none;">
+      <div class="vc-empty-icon"><i class="fas fa-clipboard-check"></i></div>
+      <h3 id="vcEmptyTitle">No complaints found</h3>
+      <p id="vcEmptyDesc">No complaints match your current filters.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div class="vc-pagination">
+      <div class="vc-per-page">
+        Show
+        <select id="vcPerPage">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="all">All</option>
+        </select>
+        per page
+      </div>
+      <div class="vc-pag-info" id="vcPagInfo">—</div>
+      <div class="vc-pages" id="vcPages"></div>
+    </div>
+  </div>
+
+</div><!-- /vc-wrap -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+
+  const allRows = Array.from(document.querySelectorAll('.vc-data-row'));
+
+  /* ── PILL COUNTS ── */
+  let pendingCount = 0, repliedCount = 0;
+  allRows.forEach(r => {
+    if (r.dataset.status === 'pending') pendingCount++;
+    else repliedCount++;
+  });
+  document.getElementById('countAll').textContent     = allRows.length;
+  document.getElementById('countPending').textContent = pendingCount;
+  document.getElementById('countReplied').textContent = repliedCount;
+  document.getElementById('statPending').textContent  = pendingCount;
+  document.getElementById('statReplied').textContent  = repliedCount;
+
+  /* ── RELATIVE DATE ── */
+  function relativeDate(dateStr) {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d)) return '';
+      const diff = Math.floor((Date.now() - d) / 86400000);
+      if (diff === 0) return 'Today';
+      if (diff === 1) return 'Yesterday';
+      if (diff < 7)  return diff + ' days ago';
+      if (diff < 30) return Math.floor(diff/7) + ' weeks ago';
+      return Math.floor(diff/30) + ' months ago';
+    } catch(e) { return ''; }
+  }
+  document.querySelectorAll('.vc-date-rel[data-date]').forEach(el => {
+    el.textContent = relativeDate(el.dataset.date);
+  });
+
+  /* ── STATE ── */
+  let searchVal    = '';
+  let statusFilter = 'all';
+  let fromDate     = null;
+  let toDate       = null;
+  let currentPage  = 1;
+  let perPage      = 10;
+  let filtered     = [...allRows];
+
+  /* ── SEARCH ── */
+  document.getElementById('vcSearch').addEventListener('input', function () {
+    searchVal = this.value.trim().toLowerCase();
+    currentPage = 1;
+    applyFilters();
+  });
+
+  /* ── STATUS PILLS ── */
+  document.querySelectorAll('.vc-pill').forEach(pill => {
+    pill.addEventListener('click', function () {
+      // Reset all pills
+      document.querySelectorAll('.vc-pill').forEach(p => {
+        p.classList.remove('active-all', 'active-pending', 'active-replied');
+      });
+      statusFilter = this.dataset.filter;
+      if (statusFilter === 'all')     this.classList.add('active-all');
+      if (statusFilter === 'pending') this.classList.add('active-pending');
+      if (statusFilter === 'replied') this.classList.add('active-replied');
+      currentPage = 1;
+      applyFilters();
+    });
+  });
+
+  /* ── DATE FILTER ── */
+  window.applyDateFilter = function () {
+    fromDate = document.getElementById('fromDate').value || null;
+    toDate   = document.getElementById('toDate').value   || null;
+    currentPage = 1;
+    const badge = document.getElementById('activeFilterBadge');
+    const text  = document.getElementById('activeFilterText');
+    if (fromDate || toDate) {
+      badge.classList.add('show');
+      text.textContent = (fromDate || '—') + ' → ' + (toDate || '—');
+    } else {
+      badge.classList.remove('show');
+    }
+    applyFilters();
+  };
+
+  window.clearFilter = function () {
+    document.getElementById('fromDate').value = '';
+    document.getElementById('toDate').value   = '';
+    fromDate = null; toDate = null;
+    document.getElementById('activeFilterBadge').classList.remove('show');
+    currentPage = 1;
+    applyFilters();
+  };
+
+  document.getElementById('fromDate').addEventListener('change', applyDateFilter);
+  document.getElementById('toDate').addEventListener('change',   applyDateFilter);
+
+  /* ── FILTER ── */
+  function matchesFilters(row) {
+    // Search
+    const q = searchVal;
+    const searchMatch = !q ||
+      (row.dataset.user      || '').includes(q) ||
+      (row.dataset.complaint || '').includes(q);
+
+    // Status
+    const statusMatch = statusFilter === 'all' || row.dataset.status === statusFilter;
+
+    // Date
+    let dateMatch = true;
+    if (fromDate || toDate) {
+      const raw = (row.dataset.dateRaw || row.dataset.date || '').toString().slice(0,10);
+      if (!raw) return false;
+      if (fromDate && raw < fromDate) dateMatch = false;
+      if (toDate   && raw > toDate)   dateMatch = false;
+    }
+    return searchMatch && statusMatch && dateMatch;
+  }
+
+  function applyFilters() {
+    filtered = allRows.filter(matchesFilters);
+    document.getElementById('statShowing').textContent = filtered.length;
+    render();
+  }
+
+  /* ── RENDER ── */
+  function render() {
+    allRows.forEach(r => r.style.display = 'none');
+    const empty = document.getElementById('vcEmpty');
+
+    if (filtered.length === 0) {
+      empty.style.display = '';
+      document.getElementById('vcEmptyTitle').textContent =
+        (searchVal || fromDate || toDate || statusFilter !== 'all') ? 'No results found' : 'No complaints yet';
+      document.getElementById('vcEmptyDesc').textContent =
+        (searchVal || fromDate || toDate || statusFilter !== 'all')
+          ? 'Try adjusting your search or filters.'
+          : 'Complaints from users will appear here.';
+      document.getElementById('vcHeaderCount').textContent = '0 complaints';
+      document.getElementById('vcPagInfo').textContent = 'Showing 0 of 0';
+      document.getElementById('vcPages').innerHTML = '';
+      return;
+    }
+
+    empty.style.display = 'none';
+    const total = filtered.length;
+    const limit = perPage === 'all' ? total : perPage;
+    const pages = Math.ceil(total / limit);
+    if (currentPage > pages) currentPage = pages;
+
+    const start = (currentPage - 1) * limit;
+    const end   = Math.min(start + limit, total);
+
+    filtered.forEach((r, idx) => {
+      if (idx >= start && idx < end) {
+        r.style.display = '';
+        r.querySelector('.vc-idx').textContent = idx + 1;
+      }
+    });
+
+    const parts = [];
+    if (searchVal)             parts.push(`"${searchVal}"`);
+    if (statusFilter !== 'all') parts.push(statusFilter);
+    if (fromDate || toDate)    parts.push('date filtered');
+
+    document.getElementById('vcHeaderCount').textContent =
+      `${total} complaint${total !== 1 ? 's' : ''}${parts.length ? ' · ' + parts.join(', ') : ''}`;
+    document.getElementById('vcPagInfo').innerHTML =
+      `Showing <strong>${start+1}–${end}</strong> of <strong>${total}</strong>`;
+
+    renderPages(pages);
+  }
+
+  /* ── PAGINATION ── */
+  function renderPages(total) {
+    const div = document.getElementById('vcPages');
+    div.innerHTML = '';
+    if (total <= 1) return;
+
+    const mk = (label, page, active, disabled) => {
+      const b = document.createElement('button');
+      b.className = 'vc-page-btn' + (active ? ' active' : '') + (disabled ? ' disabled' : '');
+      b.innerHTML = label;
+      if (!disabled && !active) b.onclick = () => { currentPage = page; render(); };
+      return b;
+    };
+
+    div.appendChild(mk('<i class="fas fa-chevron-left"></i>', currentPage - 1, false, currentPage === 1));
+
+    const range = [];
+    if (total <= 7) { for (let i = 1; i <= total; i++) range.push(i); }
+    else {
+      range.push(1);
+      if (currentPage > 3) range.push('…');
+      for (let i = Math.max(2, currentPage-1); i <= Math.min(total-1, currentPage+1); i++) range.push(i);
+      if (currentPage < total-2) range.push('…');
+      range.push(total);
+    }
+
+    range.forEach(p => {
+      if (p === '…') {
+        const s = document.createElement('span');
+        s.textContent = '…'; s.style.cssText = 'color:var(--text-muted);font-size:13px;padding:0 4px;';
+        div.appendChild(s);
+      } else {
+        div.appendChild(mk(p, p, p === currentPage, false));
+      }
+    });
+
+    div.appendChild(mk('<i class="fas fa-chevron-right"></i>', currentPage + 1, false, currentPage === total));
+  }
+
+  /* ── PER PAGE ── */
+  document.getElementById('vcPerPage').addEventListener('change', function () {
+    perPage = this.value === 'all' ? 'all' : parseInt(this.value);
+    currentPage = 1;
+    applyFilters();
+  });
+
+  /* ── SORT ── */
+  document.querySelectorAll('.vc-table thead th[data-col]').forEach(th => {
+    let asc = true;
+    th.addEventListener('click', function () {
+      document.querySelectorAll('.vc-table thead th').forEach(t => t.classList.remove('sorted'));
+      this.classList.add('sorted');
+      const col = this.dataset.col;
+      const icon = this.querySelector('.sort-icon');
+      icon.className = `fas fa-sort-${asc ? 'up' : 'down'} sort-icon`;
+
+      filtered.sort((a, b) => {
+        let va = '', vb = '';
+        if (col === 'date')      { va = a.dataset.date;      vb = b.dataset.date; }
+        if (col === 'user')      { va = a.dataset.user;      vb = b.dataset.user; }
+        if (col === 'complaint') { va = a.dataset.complaint; vb = b.dataset.complaint; }
+        if (col === 'status')    { va = a.dataset.status;    vb = b.dataset.status; }
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+
+      asc = !asc;
+      currentPage = 1;
+      render();
+    });
+  });
+
+  /* ── EXPAND/COLLAPSE ── */
+  window.toggleExpand = function (id, btn) {
+    const el = document.getElementById(id);
+    const expanded = el.classList.contains('expanded');
+    if (expanded) {
+      el.style.cssText = '';
+      el.classList.remove('expanded');
+      btn.innerHTML = '<i class="fas fa-chevron-down"></i> Show more';
+    } else {
+      el.style.display = 'block';
+      el.style.webkitLineClamp = 'unset';
+      el.style.overflow = 'visible';
+      el.classList.add('expanded');
+      btn.innerHTML = '<i class="fas fa-chevron-up"></i> Show less';
+    }
+  };
+
+  /* ── INIT ── */
+  applyFilters();
+
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,785 @@
+{% extends 'index.html' %}
+{% block body %}
+
+<style>
+  /* ── Food Database Page ── */
+  .vf-wrap { padding-bottom: 48px; }
+
+  .vf-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-muted); margin-bottom: 6px;
+  }
+  .vf-breadcrumb a { color: var(--green-1); text-decoration: none; }
+
+  .vf-page-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;
+  }
+  .vf-page-title span { color: var(--green-1); }
+  .vf-page-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Stat bar ── */
+  .vf-statbar {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 14px; margin-bottom: 24px;
+  }
+  .vf-stat {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 18px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px;
+    transition: var(--tr); animation: fadeUp 0.4s ease both;
+  }
+  .vf-stat:nth-child(2){animation-delay:.07s}
+  .vf-stat:nth-child(3){animation-delay:.14s}
+  .vf-stat:nth-child(4){animation-delay:.21s}
+  .vf-stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .vf-stat-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .vf-stat-icon.green  { background: rgba(0,200,150,0.12);  color: var(--green-1); }
+  .vf-stat-icon.teal   { background: rgba(38,198,218,0.12); color: #26C6DA; }
+  .vf-stat-icon.orange { background: rgba(255,112,67,0.12); color: var(--orange-1); }
+  .vf-stat-icon.blue   { background: rgba(66,165,245,0.12); color: #42A5F5; }
+  .vf-stat-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+  .vf-stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* ── Main card ── */
+  .vf-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    overflow: hidden; animation: fadeUp 0.45s ease 0.1s both;
+  }
+
+  .vf-card-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    background: linear-gradient(135deg, rgba(0,200,150,0.04), transparent);
+  }
+
+  .vf-card-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--text-primary); }
+  .vf-card-sub   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .vf-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* Search */
+  .vf-search { position: relative; }
+  .vf-search input {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 9px 16px 9px 38px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; width: 240px; transition: var(--tr);
+  }
+  .vf-search input::placeholder { color: var(--text-muted); }
+  .vf-search input:focus { border-color: var(--green-1); box-shadow: 0 0 0 3px rgba(0,200,150,0.1); }
+  .vf-search i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; pointer-events: none; }
+
+  /* View toggle */
+  .vf-view-toggle { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+  .vf-view-btn {
+    width: 32px; height: 32px; border-radius: 7px; border: none;
+    background: transparent; color: var(--text-muted); font-size: 14px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--tr);
+  }
+  .vf-view-btn.active { background: var(--green-1); color: #fff; }
+
+  /* Add button */
+  .vf-add-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 18px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    color: #fff; text-decoration: none;
+    font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+    box-shadow: 0 4px 14px rgba(0,200,150,0.3);
+    transition: var(--tr); white-space: nowrap;
+  }
+  .vf-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,200,150,0.4); color: #fff; }
+
+  /* ── TABLE VIEW ── */
+  .vf-table-wrap { overflow-x: auto; }
+  .vf-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .vf-table thead th {
+    background: var(--bg); color: var(--text-muted);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 12px 18px; border-bottom: 1px solid var(--border); white-space: nowrap;
+    cursor: pointer; user-select: none; transition: var(--tr);
+  }
+  .vf-table thead th:hover { color: var(--green-1); }
+  .sort-icon { margin-left: 5px; opacity: 0.4; font-size: 10px; }
+  .sorted .sort-icon { opacity: 1; color: var(--green-1); }
+
+  .vf-table tbody tr { border-bottom: 1px solid var(--border); transition: var(--tr); }
+  .vf-table tbody tr:last-child { border-bottom: none; }
+  .vf-table tbody tr:hover { background: rgba(0,200,150,0.04); }
+  .vf-table tbody td { padding: 14px 18px; vertical-align: middle; color: var(--text-primary); }
+
+  .vf-idx { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-muted); width: 48px; }
+
+  /* Food name cell */
+  .vf-food-cell { display: flex; align-items: center; gap: 14px; }
+  .vf-thumb-wrap { position: relative; flex-shrink: 0; }
+  .vf-thumb {
+    width: 52px; height: 52px; border-radius: 12px; object-fit: cover;
+    border: 1.5px solid var(--border); display: block; transition: var(--tr);
+  }
+  .vf-thumb:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+  .vf-thumb-fallback {
+    width: 52px; height: 52px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--green-1), var(--green-3));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; color: #fff; flex-shrink: 0;
+  }
+  .vf-food-name { font-weight: 700; font-size: 14px; color: var(--text-primary); font-family: 'Syne', sans-serif; }
+  .vf-food-id   { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Description cell */
+  .vf-desc {
+    font-size: 13px; color: var(--text-secondary); max-width: 300px;
+    line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+
+  /* Actions */
+  .vf-actions { display: flex; align-items: center; gap: 8px; }
+  .vf-btn-edit {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    background: rgba(0,200,150,0.1); border: 1.5px solid rgba(0,200,150,0.25);
+    color: var(--green-2); font-size: 12px; font-weight: 700;
+    font-family: 'Syne', sans-serif; text-decoration: none; transition: var(--tr);
+  }
+  .vf-btn-edit:hover { background: var(--green-1); color: #fff; border-color: var(--green-1); transform: translateY(-1px); }
+
+  .vf-btn-delete {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    background: rgba(239,83,80,0.08); border: 1.5px solid rgba(239,83,80,0.2);
+    color: var(--red-1); font-size: 12px; font-weight: 700;
+    font-family: 'Syne', sans-serif; text-decoration: none; transition: var(--tr); cursor: pointer;
+  }
+  .vf-btn-delete:hover { background: var(--red-1); color: #fff; border-color: var(--red-1); transform: translateY(-1px); }
+
+  /* ── GRID VIEW ── */
+  .vf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px; padding: 24px;
+  }
+  .vf-grid-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; transition: var(--tr);
+    animation: fadeUp 0.35s ease both;
+  }
+  .vf-grid-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); border-color: rgba(0,200,150,0.3); }
+  .vf-grid-img-wrap { position: relative; height: 160px; overflow: hidden; background: var(--border); }
+  .vf-grid-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: var(--tr); }
+  .vf-grid-card:hover .vf-grid-img { transform: scale(1.05); }
+  .vf-grid-img-fallback {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(0,200,150,0.15), rgba(0,200,150,0.05));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 42px; color: var(--green-1);
+  }
+  .vf-grid-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 3px 9px; border-radius: 20px; font-family: 'Syne', sans-serif;
+  }
+  .vf-grid-body { padding: 14px; }
+  .vf-grid-name { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .vf-grid-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 14px; }
+  .vf-grid-actions { display: flex; gap: 8px; }
+  .vf-grid-actions a, .vf-grid-actions button {
+    flex: 1; padding: 8px; border-radius: 8px; text-align: center;
+    font-size: 12px; font-weight: 700; font-family: 'Syne', sans-serif;
+    text-decoration: none; transition: var(--tr); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .vf-grid-edit   { background: rgba(0,200,150,0.1); color: var(--green-2); border: 1.5px solid rgba(0,200,150,0.25) !important; }
+  .vf-grid-edit:hover { background: var(--green-1); color: #fff; }
+  .vf-grid-del    { background: rgba(239,83,80,0.08); color: var(--red-1); border: 1.5px solid rgba(239,83,80,0.2) !important; }
+  .vf-grid-del:hover { background: var(--red-1); color: #fff; }
+
+  /* ── Empty state ── */
+  .vf-empty { padding: 64px 24px; text-align: center; }
+  .vf-empty-icon {
+    width: 64px; height: 64px; border-radius: 18px;
+    background: rgba(0,200,150,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--green-1); margin: 0 auto 16px;
+  }
+  .vf-empty h3 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+  .vf-empty p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+  /* ── Pagination ── */
+  .vf-pagination {
+    padding: 16px 24px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .vf-pag-info { font-size: 12px; color: var(--text-muted); }
+  .vf-pag-info strong { color: var(--text-primary); }
+  .vf-pages { display: flex; align-items: center; gap: 6px; }
+  .vf-page-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    font-size: 13px; font-weight: 600; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: var(--tr); font-family: 'Syne', sans-serif;
+  }
+  .vf-page-btn:hover { border-color: var(--green-1); color: var(--green-1); background: rgba(0,200,150,0.06); }
+  .vf-page-btn.active { background: var(--green-1); border-color: var(--green-1); color: #fff; }
+  .vf-page-btn.disabled { opacity: 0.35; pointer-events: none; }
+
+  .vf-per-page { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .vf-per-page select {
+    background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 5px 10px; font-size: 12px; font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary); outline: none; cursor: pointer; transition: var(--tr);
+  }
+  .vf-per-page select:focus { border-color: var(--green-1); }
+
+  /* ── Delete modal ── */
+  .vf-modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(4px);
+    z-index: 9999; align-items: center; justify-content: center;
+  }
+  .vf-modal-backdrop.open { display: flex; }
+  .vf-modal {
+    background: var(--card); border-radius: 18px;
+    padding: 32px; max-width: 380px; width: 90%;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+    animation: fadeUp 0.25s ease;
+    text-align: center;
+  }
+  .vf-modal-icon {
+    width: 60px; height: 60px; border-radius: 16px;
+    background: rgba(239,83,80,0.1); border: 2px solid rgba(239,83,80,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; color: var(--red-1); margin: 0 auto 18px;
+  }
+  .vf-modal h3 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; }
+  .vf-modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+  .vf-modal-food-name {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 16px; margin-bottom: 24px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px;
+    color: var(--text-primary);
+  }
+  .vf-modal-actions { display: flex; gap: 12px; }
+  .vf-modal-cancel {
+    flex: 1; padding: 11px; border-radius: 10px;
+    border: 1.5px solid var(--border); background: var(--bg);
+    color: var(--text-secondary); font-size: 14px; font-weight: 600;
+    font-family: 'Syne', sans-serif; cursor: pointer; transition: var(--tr); text-decoration: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vf-modal-cancel:hover { border-color: var(--text-muted); color: var(--text-primary); }
+  .vf-modal-confirm {
+    flex: 1; padding: 11px; border-radius: 10px; border: none;
+    background: var(--red-1); color: #fff;
+    font-size: 14px; font-weight: 700; font-family: 'Syne', sans-serif;
+    cursor: pointer; transition: var(--tr); text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+  }
+  .vf-modal-confirm:hover { background: #C62828; transform: translateY(-1px); }
+
+  /* Responsive */
+  @media(max-width:900px) { .vf-search input { width: 180px; } }
+  @media(max-width:640px) {
+    .vf-toolbar { width: 100%; }
+    .vf-search { flex: 1; }
+    .vf-search input { width: 100%; }
+  }
+</style>
+
+{% if messages %}
+  <div style="margin-bottom:20px;">
+    {% for message in messages %}
+      <div style="padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;
+        display:flex;align-items:center;gap:10px;margin-bottom:8px;
+        {% if message.tags == 'success' %}background:rgba(0,200,150,0.1);border:1px solid rgba(0,200,150,0.3);color:var(--green-2);
+        {% else %}background:rgba(255,112,67,0.1);border:1px solid rgba(255,112,67,0.3);color:var(--orange-1);{% endif %}">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<!-- Delete confirmation modal -->
+<div class="vf-modal-backdrop" id="deleteModal">
+  <div class="vf-modal">
+    <div class="vf-modal-icon"><i class="fas fa-trash-alt"></i></div>
+    <h3>Delete Food Item</h3>
+    <p>Are you sure you want to permanently delete this item from the database?</p>
+    <div class="vf-modal-food-name" id="modalFoodName">—</div>
+    <div class="vf-modal-actions">
+      <button class="vf-modal-cancel" onclick="closeModal()">Cancel</button>
+      <a class="vf-modal-confirm" id="modalConfirmLink" href="#">
+        <i class="fas fa-trash-alt"></i> Delete
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="vf-wrap">
+
+  <!-- Page heading -->
+  <div class="vf-breadcrumb">
+    <a href="/myapp/admin_home/#abc">Home</a>
+    <span>/</span><span>Food Database</span>
+  </div>
+  <h1 class="vf-page-title">Food <span>Database</span></h1>
+  <p class="vf-page-sub">All food items available in the FoodSnap AI system.</p>
+
+  <!-- Stat bar -->
+  <div class="vf-statbar">
+    <div class="vf-stat">
+      <div class="vf-stat-icon green"><i class="fas fa-apple-alt"></i></div>
+      <div>
+        <div class="vf-stat-val">{{ data|length }}</div>
+        <div class="vf-stat-lbl">Total Items</div>
+      </div>
+    </div>
+    <div class="vf-stat">
+      <div class="vf-stat-icon teal"><i class="fas fa-image"></i></div>
+      <div>
+        <div class="vf-stat-val" id="statWithPhoto">—</div>
+        <div class="vf-stat-lbl">With Photo</div>
+      </div>
+    </div>
+    <div class="vf-stat">
+      <div class="vf-stat-icon orange"><i class="fas fa-align-left"></i></div>
+      <div>
+        <div class="vf-stat-val" id="statWithDesc">—</div>
+        <div class="vf-stat-lbl">With Description</div>
+      </div>
+    </div>
+    <div class="vf-stat">
+      <div class="vf-stat-icon blue"><i class="fas fa-search"></i></div>
+      <div>
+        <div class="vf-stat-val" id="statFiltered">{{ data|length }}</div>
+        <div class="vf-stat-lbl">Showing</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main card -->
+  <div class="vf-card">
+    <div class="vf-card-header">
+      <div>
+        <div class="vf-card-title">All Food Items</div>
+        <div class="vf-card-sub" id="vfHeaderCount">Loading…</div>
+      </div>
+      <div class="vf-toolbar">
+        <div class="vf-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="vfSearch" placeholder="Search food name…">
+        </div>
+        <div class="vf-view-toggle">
+          <button class="vf-view-btn active" id="btnTableView" title="Table view" onclick="setView('table')">
+            <i class="fas fa-list"></i>
+          </button>
+          <button class="vf-view-btn" id="btnGridView" title="Grid view" onclick="setView('grid')">
+            <i class="fas fa-th-large"></i>
+          </button>
+        </div>
+        <a href="/myapp/admin_add_food/#abc" class="vf-add-btn">
+          <i class="fas fa-plus"></i> Add Food
+        </a>
+      </div>
+    </div>
+
+    <!-- TABLE VIEW -->
+    <div id="tableView">
+      <div class="vf-table-wrap">
+        <table class="vf-table">
+          <thead>
+            <tr>
+              <th style="width:48px">#</th>
+              <th data-col="name">Food Name <i class="fas fa-sort sort-icon"></i></th>
+              <th style="width:80px">Photo</th>
+              <th data-col="desc">Description <i class="fas fa-sort sort-icon"></i></th>
+              <th style="width:140px; text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="vfTbody">
+            {% for i in data %}
+            <tr class="vf-data-row"
+                data-name="{{ i.Food_Name|lower }}"
+                data-desc="{{ i.description|lower }}"
+                data-id="{{ i.id }}"
+                data-food-name="{{ i.Food_Name }}"
+                data-has-photo="{% if i.Photo %}1{% else %}0{% endif %}"
+                data-has-desc="{% if i.description %}1{% else %}0{% endif %}">
+              <td class="vf-idx">{{ forloop.counter }}</td>
+
+              <!-- Name -->
+              <td>
+                <div class="vf-food-cell">
+                  <div class="vf-thumb-wrap">
+                    {% if i.Photo %}
+                      <img src="{{ i.Photo }}" class="vf-thumb" alt="{{ i.Food_Name }}"
+                           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                      <div class="vf-thumb-fallback" style="display:none;">
+                        <i class="fas fa-utensils"></i>
+                      </div>
+                    {% else %}
+                      <div class="vf-thumb-fallback"><i class="fas fa-utensils"></i></div>
+                    {% endif %}
+                  </div>
+                  <div>
+                    <div class="vf-food-name">{{ i.Food_Name }}</div>
+                    <div class="vf-food-id">ID #{{ i.id }}</div>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Photo (standalone column kept for layout) -->
+              <td style="text-align:center;">
+                {% if i.Photo %}
+                  <span style="font-size:11px;background:rgba(0,200,150,0.1);color:var(--green-1);padding:3px 9px;border-radius:20px;font-weight:600;">
+                    <i class="fas fa-check"></i> Yes
+                  </span>
+                {% else %}
+                  <span style="font-size:11px;background:rgba(154,176,168,0.12);color:var(--text-muted);padding:3px 9px;border-radius:20px;font-weight:600;">
+                    None
+                  </span>
+                {% endif %}
+              </td>
+
+              <!-- Description -->
+              <td>
+                <div class="vf-desc">
+                  {{ i.description|default:"—" }}
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="vf-actions">
+                  <a href="/myapp/admin_edit_food/{{ i.id }}" class="vf-btn-edit">
+                    <i class="fas fa-pen"></i> Edit
+                  </a>
+                  <button class="vf-btn-delete" onclick="confirmDelete('{{ i.id }}', '{{ i.Food_Name|escapejs }}')">
+                    <i class="fas fa-trash-alt"></i> Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <!-- handled by JS -->
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div class="vf-empty" id="vfEmpty" style="display:none;">
+        <div class="vf-empty-icon"><i class="fas fa-apple-alt"></i></div>
+        <h3 id="vfEmptyTitle">No food items found</h3>
+        <p id="vfEmptyDesc">Start building your food database.</p>
+        <a href="/myapp/admin_add_food/#abc" class="vf-add-btn" style="display:inline-flex;">
+          <i class="fas fa-plus"></i> Add First Item
+        </a>
+      </div>
+    </div>
+
+    <!-- GRID VIEW -->
+    <div id="gridView" style="display:none;">
+      <div class="vf-grid" id="vfGrid">
+        {% for i in data %}
+        <div class="vf-grid-card vf-grid-row"
+             data-name="{{ i.Food_Name|lower }}"
+             data-id="{{ i.id }}"
+             data-food-name="{{ i.Food_Name }}">
+          <div class="vf-grid-img-wrap">
+            {% if i.Photo %}
+              <img src="{{ i.Photo }}" class="vf-grid-img" alt="{{ i.Food_Name }}"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="vf-grid-img-fallback" style="display:none;"><i class="fas fa-utensils"></i></div>
+            {% else %}
+              <div class="vf-grid-img-fallback"><i class="fas fa-utensils"></i></div>
+            {% endif %}
+            <div class="vf-grid-badge">#{{ i.id }}</div>
+          </div>
+          <div class="vf-grid-body">
+            <div class="vf-grid-name">{{ i.Food_Name }}</div>
+            <div class="vf-grid-desc">{{ i.description|default:"No description available." }}</div>
+            <div class="vf-grid-actions">
+              <a href="/myapp/admin_edit_food/{{ i.id }}" class="vf-grid-edit">
+                <i class="fas fa-pen"></i> Edit
+              </a>
+              <button class="vf-grid-del" onclick="confirmDelete('{{ i.id }}', '{{ i.Food_Name|escapejs }}')">
+                <i class="fas fa-trash-alt"></i> Delete
+              </button>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        {% endfor %}
+      </div>
+
+      <div class="vf-empty" id="vfGridEmpty" style="display:none;">
+        <div class="vf-empty-icon"><i class="fas fa-apple-alt"></i></div>
+        <h3>No food items found</h3>
+        <p>Try a different search term.</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="vf-pagination" id="vfPagination">
+      <div class="vf-per-page">
+        Show
+        <select id="vfPerPage">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="all">All</option>
+        </select>
+        per page
+      </div>
+      <div class="vf-pag-info" id="vfPagInfo">—</div>
+      <div class="vf-pages" id="vfPages"></div>
+    </div>
+  </div>
+
+</div><!-- /vf-wrap -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+
+  /* ── ROWS ── */
+  const tableRows = Array.from(document.querySelectorAll('.vf-data-row'));
+  const gridCards = Array.from(document.querySelectorAll('.vf-grid-row'));
+
+  /* ── STATS ── */
+  let withPhoto = 0, withDesc = 0;
+  tableRows.forEach(r => {
+    if (r.dataset.hasPhoto === '1') withPhoto++;
+    if (r.dataset.hasDesc  === '1') withDesc++;
+  });
+  document.getElementById('statWithPhoto').textContent = withPhoto;
+  document.getElementById('statWithDesc').textContent  = withDesc;
+
+  /* ── STATE ── */
+  let currentView = 'table';
+  let searchVal   = '';
+  let currentPage = 1;
+  let perPage     = 10;
+  let filteredRows = [...tableRows];
+  let filteredCards= [...gridCards];
+
+  /* ── VIEW TOGGLE ── */
+  window.setView = function (v) {
+    currentView = v;
+    document.getElementById('tableView').style.display = v === 'table' ? '' : 'none';
+    document.getElementById('gridView').style.display  = v === 'grid'  ? '' : 'none';
+    document.getElementById('btnTableView').classList.toggle('active', v === 'table');
+    document.getElementById('btnGridView').classList.toggle('active',  v === 'grid');
+    currentPage = 1;
+    applyFilters();
+  };
+
+  /* ── SEARCH ── */
+  document.getElementById('vfSearch').addEventListener('input', function () {
+    searchVal = this.value.trim().toLowerCase();
+    currentPage = 1;
+    applyFilters();
+  });
+
+  /* ── FILTER ── */
+  function applyFilters() {
+    filteredRows = tableRows.filter(r =>
+      !searchVal || r.dataset.name.includes(searchVal) || r.dataset.desc.includes(searchVal)
+    );
+    filteredCards = gridCards.filter(c =>
+      !searchVal || c.dataset.name.includes(searchVal)
+    );
+
+    document.getElementById('statFiltered').textContent =
+      currentView === 'table' ? filteredRows.length : filteredCards.length;
+
+    if (currentView === 'table') renderTable();
+    else renderGrid();
+  }
+
+  /* ── RENDER TABLE ── */
+  function renderTable() {
+    const tbody  = document.getElementById('vfTbody');
+    const empty  = document.getElementById('vfEmpty');
+    const pagDiv = document.getElementById('vfPagination');
+
+    tableRows.forEach(r => r.style.display = 'none');
+
+    if (filteredRows.length === 0) {
+      empty.style.display = '';
+      document.getElementById('vfEmptyTitle').textContent = searchVal ? 'No results found' : 'No food items yet';
+      document.getElementById('vfEmptyDesc').textContent  = searchVal ? `Nothing matches "${searchVal}".` : 'Start adding food items to the database.';
+      document.getElementById('vfHeaderCount').textContent = '0 items';
+      document.getElementById('vfPagInfo').textContent = 'Showing 0 of 0';
+      document.getElementById('vfPages').innerHTML = '';
+      return;
+    }
+
+    empty.style.display = 'none';
+    const total = filteredRows.length;
+    const limit = perPage === 'all' ? total : perPage;
+    const pages = Math.ceil(total / limit);
+    if (currentPage > pages) currentPage = pages;
+
+    const start = (currentPage - 1) * limit;
+    const end   = Math.min(start + limit, total);
+
+    filteredRows.forEach((r, idx) => {
+      if (idx >= start && idx < end) {
+        r.style.display = '';
+        r.querySelector('.vf-idx').textContent = idx + 1;
+      }
+    });
+
+    document.getElementById('vfHeaderCount').textContent =
+      `${total} item${total !== 1 ? 's' : ''}${searchVal ? ' · "' + searchVal + '"' : ''}`;
+    document.getElementById('vfPagInfo').innerHTML =
+      `Showing <strong>${start+1}–${end}</strong> of <strong>${total}</strong>`;
+
+    renderPages(pages);
+  }
+
+  /* ── RENDER GRID ── */
+  function renderGrid() {
+    const gridEmpty = document.getElementById('vfGridEmpty');
+    gridCards.forEach(c => c.style.display = 'none');
+
+    if (filteredCards.length === 0) {
+      gridEmpty.style.display = '';
+      document.getElementById('vfHeaderCount').textContent = '0 items';
+      document.getElementById('vfPagInfo').textContent = 'Showing 0 of 0';
+      document.getElementById('vfPages').innerHTML = '';
+      return;
+    }
+
+    gridEmpty.style.display = 'none';
+    const total = filteredCards.length;
+    const limit = perPage === 'all' ? total : perPage;
+    const pages = Math.ceil(total / limit);
+    if (currentPage > pages) currentPage = pages;
+
+    const start = (currentPage - 1) * limit;
+    const end   = Math.min(start + limit, total);
+
+    filteredCards.forEach((c, idx) => {
+      c.style.display = (idx >= start && idx < end) ? '' : 'none';
+      c.style.animationDelay = ((idx - start) * 0.05) + 's';
+    });
+
+    document.getElementById('vfHeaderCount').textContent =
+      `${total} item${total !== 1 ? 's' : ''}${searchVal ? ' · "' + searchVal + '"' : ''}`;
+    document.getElementById('vfPagInfo').innerHTML =
+      `Showing <strong>${start+1}–${end}</strong> of <strong>${total}</strong>`;
+
+    renderPages(pages);
+  }
+
+  /* ── PAGINATION ── */
+  function renderPages(total) {
+    const div = document.getElementById('vfPages');
+    div.innerHTML = '';
+    if (total <= 1) return;
+
+    const mk = (label, page, active, disabled) => {
+      const b = document.createElement('button');
+      b.className = 'vf-page-btn' + (active ? ' active' : '') + (disabled ? ' disabled' : '');
+      b.innerHTML = label;
+      if (!disabled && !active) b.onclick = () => { currentPage = page; currentView === 'table' ? renderTable() : renderGrid(); };
+      return b;
+    };
+
+    div.appendChild(mk('<i class="fas fa-chevron-left"></i>', currentPage - 1, false, currentPage === 1));
+
+    const range = [];
+    if (total <= 7) { for (let i = 1; i <= total; i++) range.push(i); }
+    else {
+      range.push(1);
+      if (currentPage > 3) range.push('…');
+      for (let i = Math.max(2, currentPage-1); i <= Math.min(total-1, currentPage+1); i++) range.push(i);
+      if (currentPage < total-2) range.push('…');
+      range.push(total);
+    }
+
+    range.forEach(p => {
+      if (p === '…') {
+        const s = document.createElement('span');
+        s.textContent = '…'; s.style.cssText = 'color:var(--text-muted);font-size:13px;padding:0 4px;';
+        div.appendChild(s);
+      } else {
+        div.appendChild(mk(p, p, p === currentPage, false));
+      }
+    });
+
+    div.appendChild(mk('<i class="fas fa-chevron-right"></i>', currentPage + 1, false, currentPage === total));
+  }
+
+  /* ── PER PAGE ── */
+  document.getElementById('vfPerPage').addEventListener('change', function () {
+    perPage = this.value === 'all' ? 'all' : parseInt(this.value);
+    currentPage = 1;
+    applyFilters();
+  });
+
+  /* ── SORT ── */
+  document.querySelectorAll('.vf-table thead th[data-col]').forEach(th => {
+    let asc = true;
+    th.addEventListener('click', function () {
+      document.querySelectorAll('.vf-table thead th').forEach(t => t.classList.remove('sorted'));
+      this.classList.add('sorted');
+      const col = this.dataset.col;
+      const icon = this.querySelector('.sort-icon');
+      icon.className = `fas fa-sort-${asc ? 'up' : 'down'} sort-icon`;
+
+      filteredRows.sort((a, b) => {
+        const va = col === 'name' ? a.dataset.name : a.dataset.desc;
+        const vb = col === 'name' ? b.dataset.name : b.dataset.desc;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+
+      asc = !asc;
+      currentPage = 1;
+      renderTable();
+    });
+  });
+
+  /* ── DELETE MODAL ── */
+  window.confirmDelete = function (id, name) {
+    document.getElementById('modalFoodName').textContent = name;
+    document.getElementById('modalConfirmLink').href = '/myapp/admin_delete_food_database/' + id;
+    document.getElementById('deleteModal').classList.add('open');
+  };
+
+  window.closeModal = function () {
+    document.getElementById('deleteModal').classList.remove('open');
+  };
+
+  document.getElementById('deleteModal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  /* ── INIT ── */
+  applyFilters();
+
+})();
+</script>
+{% endblock %}
